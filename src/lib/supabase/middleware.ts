@@ -8,6 +8,10 @@ export async function updateSession(request: NextRequest) {
     },
   })
 
+  // Add pathname to headers for layout access
+  const pathname = request.nextUrl.pathname
+  response.headers.set('x-pathname', pathname)
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -56,6 +60,11 @@ export async function updateSession(request: NextRequest) {
 
   // Refresh session if expired
   const { data: { user } } = await supabase.auth.getUser()
+
+  // Allow /admin without authentication (uses secret prompt instead)
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    return response
+  }
 
   // Protect /dashboard and /settings routes
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
