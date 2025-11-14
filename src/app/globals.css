@@ -1,0 +1,415 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Sipher Noir Color Palette */
+    --sipher-noir-base: #0b0b0c;
+    --sipher-noir-deep: #111113;
+    --sipher-noir-section: #141416;
+    
+    /* Sipher Pulse Gradient Colors */
+    --sipher-pulse-purple: #7b5cff;
+    --sipher-electric-blue: #4aa8ff;
+    --sipher-teal-glow: #6fddff;
+    
+    /* Sipher Text Opacities */
+    --sipher-text-primary: rgba(255, 255, 255, 0.9);
+    --sipher-text-secondary: rgba(255, 255, 255, 0.6);
+    --sipher-text-muted: rgba(255, 255, 255, 0.35);
+    
+    /* Enhanced Color Palette - Semantic Variants */
+    --sipher-success: #10b981;
+    --sipher-warning: #f59e0b;
+    --sipher-error: #ef4444;
+    --sipher-info: #06b6d4;
+    
+    /* Opacity Scale for Purple */
+    --sipher-purple-10: rgba(123, 92, 255, 0.1);
+    --sipher-purple-20: rgba(123, 92, 255, 0.2);
+    --sipher-purple-30: rgba(123, 92, 255, 0.3);
+    --sipher-purple-40: rgba(123, 92, 255, 0.4);
+    --sipher-purple-50: rgba(123, 92, 255, 0.5);
+    --sipher-purple-60: rgba(123, 92, 255, 0.6);
+    --sipher-purple-70: rgba(123, 92, 255, 0.7);
+    --sipher-purple-80: rgba(123, 92, 255, 0.8);
+    --sipher-purple-90: rgba(123, 92, 255, 0.9);
+    
+    /* Spacing System */
+    --space-xs: 0.25rem;  /* 4px */
+    --space-sm: 0.5rem;   /* 8px */
+    --space-md: 1rem;     /* 16px */
+    --space-lg: 1.5rem;   /* 24px */
+    --space-xl: 2rem;     /* 32px */
+    --space-2xl: 3rem;    /* 48px */
+    --space-3xl: 4rem;    /* 64px */
+    
+    /* Typography Scale */
+    --text-xs: 0.75rem;    /* 12px */
+    --text-sm: 0.875rem;   /* 14px */
+    --text-base: 1rem;     /* 16px */
+    --text-lg: 1.125rem;   /* 18px */
+    --text-xl: 1.25rem;    /* 20px */
+    --text-2xl: 1.5rem;    /* 24px */
+    --text-3xl: 1.875rem;  /* 30px */
+    --text-4xl: 2.25rem;   /* 36px */
+    --text-5xl: 3rem;      /* 48px */
+    --text-6xl: 3.75rem;   /* 60px */
+    
+    /* Standard theme variables */
+    --background: 0 0% 4%; /* #0b0b0c */
+    --foreground: 0 0% 100%;
+
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 258 90% 66%; /* #7b5cff Sipher Pulse Purple */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 7%; /* #111113 */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 8%; /* #141416 */
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 258 90% 66%; /* Sipher Pulse Purple */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 8%;
+    --input: 0 0% 8%;
+    --ring: 258 90% 66%; /* Sipher Pulse Purple */
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  .font-poppins {
+    font-family: var(--font-poppins), 'Poppins', sans-serif;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: hsl(var(--secondary));
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted));
+  border-radius: 0.25rem;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--primary));
+}
+
+/* Selection */
+::selection {
+  background-color: hsl(var(--primary) / 0.3);
+  color: hsl(var(--primary-foreground));
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s infinite;
+}
+
+/* Hide scrollbar for horizontal scroll */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth scrolling - Optimized for performance */
+html {
+  scroll-behavior: smooth;
+  /* Optimize scroll performance */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Scroll performance optimization */
+* {
+  /* Improve scroll performance */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Noir Mode Styling */
+.bg-noir {
+  background: radial-gradient(
+      circle at 30% 20%,
+      rgba(140, 80, 255, 0.08),
+      transparent 40%
+    ),
+    #0b0b0f;
+}
+
+.noir-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Enhanced Glassmorphism 2.0 - 2025 Style */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-card-hover {
+  transition: all 0.3s ease;
+}
+
+.glass-card-hover:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 0 1px rgba(123, 92, 255, 0.1);
+}
+
+/* Radial gradient utility */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+/* Sipher Asterisk Utilities */
+
+/* Subtle glow */
+.sipher-ast-glow {
+  filter: drop-shadow(0 4px 12px rgba(139, 92, 246, 0.18))
+          drop-shadow(0 2px 6px rgba(16, 185, 129, 0.06));
+}
+
+/* Gentle pulse ring around asterisk (for CTAs) */
+.sipher-ast-ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sipher-ast-ring::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.16), transparent 40%);
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.4s;
+  pointer-events: none;
+}
+
+.sipher-ast-ring.hovered::after,
+.group:hover .sipher-ast-ring::after {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.12);
+}
+
+/* Small spin / life micro-movement */
+@keyframes sipher-ast-micro {
+  0% {
+    transform: rotate(0deg) scale(0.995);
+  }
+  50% {
+    transform: rotate(4deg) scale(1.005);
+  }
+  100% {
+    transform: rotate(0deg) scale(0.995);
+  }
+}
+
+.sipher-ast-life {
+  animation: sipher-ast-micro 3.2s ease-in-out infinite;
+}
+
+/* Noir-mode glow variant */
+.sipher-ast-noir {
+  filter: drop-shadow(0 10px 30px rgba(147, 51, 234, 0.22));
+}
+
+/* Design tokens for Sipher Asterisk */
+:root {
+  --sipher-ast-primary: #8b5cf6;
+  --sipher-ast-accent: #06b6d4;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .sipher-ast-life {
+    animation: none;
+  }
+  
+  .sipher-ast-ring::after {
+    transition: none;
+  }
+}
+
+/* Live Demo Animations */
+@keyframes dotPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.28);
+    opacity: 0.92;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-dot-pulse {
+  animation: dotPulse 1.2s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-dot-pulse {
+    animation: none;
+  }
+  
+  .glow-underline {
+    animation: none;
+  }
+}
+
+/* Glow Underline Pulse Animation */
+@keyframes glowPulse {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  30% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+.glow-underline {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(to right, rgb(168, 85, 247), rgb(96, 165, 250));
+  border-radius: 9999px;
+  animation: glowPulse 0.9s ease-in-out;
+  transform-origin: left;
+}
+
+/* Pulse Line Animation for Footer */
+@keyframes pulseLine {
+  0% { transform: translateX(-20%); }
+  100% { transform: translateX(20%); }
+}
+
+/* Sipher Global Shimmer Animation - Used by both Aura and Nav */
+@keyframes sipher-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: sipher-shimmer 12s linear infinite;
+}
+
+/* Sipher Pulse Gradient - Global utility */
+.sipher-pulse-gradient {
+  background: linear-gradient(
+    135deg,
+    rgba(123, 92, 255, 0.22),
+    rgba(74, 168, 255, 0.22),
+    rgba(111, 221, 255, 0.22)
+  );
+}
+
+/* Execution Aura Liquid Gradient - Hero only */
+.execution-aura-gradient {
+  background: radial-gradient(
+    circle at center,
+    rgba(123, 92, 255, 0.35),
+    rgba(74, 168, 255, 0.28),
+    rgba(111, 221, 255, 0.18),
+    transparent 70%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer {
+    animation: none;
+  }
+}
+
+/* Sipher Shimmer Animation for Pulse Line */
+@keyframes sipherShimmer {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: -200% 0%;
+  }
+}
+
+.animate-sipherShimmer {
+  animation: sipherShimmer 10s linear infinite;
+  will-change: background-position;
+}
+

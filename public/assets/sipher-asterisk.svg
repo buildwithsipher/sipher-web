@@ -1,0 +1,11 @@
+<svg viewBox="-24 -24 48 48" xmlns="http://www.w3.org/2000/svg">
+  <g fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 5-stroke asterisk - evenly spaced at 72 degree intervals, rotated for upright orientation -->
+    <line x1="0" y1="-12" x2="0" y2="12" transform="rotate(-54)" />
+    <line x1="0" y1="-12" x2="0" y2="12" transform="rotate(18)" />
+    <line x1="0" y1="-12" x2="0" y2="12" transform="rotate(90)" />
+    <line x1="0" y1="-12" x2="0" y2="12" transform="rotate(162)" />
+    <line x1="0" y1="-12" x2="0" y2="12" transform="rotate(234)" />
+  </g>
+</svg>
+
