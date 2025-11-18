@@ -307,6 +307,26 @@ export default function WaitlistDashboard() {
     } catch (error: any) {
       console.error('Upload error:', error)
       toast.error(error.message || 'Failed to upload image')
+      
+      // Send to Sentry for monitoring
+      if (typeof window !== 'undefined') {
+        import('@sentry/nextjs').then((Sentry) => {
+          Sentry.captureException(error, {
+            tags: {
+              errorType: 'file_upload_error',
+              uploadType: type,
+            },
+            extra: {
+              userId: waitlistData.id,
+              fileName: file.name,
+              fileSize: file.size,
+              fileType: file.type,
+            },
+          })
+        }).catch(() => {
+          // Silently fail if Sentry is not available
+        })
+      }
     } finally {
       setUploading(null)
     }
@@ -546,13 +566,23 @@ export default function WaitlistDashboard() {
                         )}
                         <label
                           htmlFor="profile-upload-drawer"
-                          className="flex-1"
+                          className="flex-1 cursor-pointer"
+                          onClick={(e) => {
+                            if (uploading === 'profile') {
+                              e.preventDefault()
+                              return
+                            }
+                          }}
                         >
                           <Button
                             type="button"
                             variant="outline"
                             className="w-full gap-2 border-white/10 hover:border-[#7F5BFF]/40"
                             disabled={uploading === 'profile'}
+                            onMouseDown={(e) => {
+                              // Prevent button from preventing label click
+                              e.preventDefault()
+                            }}
                           >
                             {uploading === 'profile' ? (
                               <>
@@ -575,6 +605,8 @@ export default function WaitlistDashboard() {
                           onChange={(e) => {
                             const file = e.target.files?.[0]
                             if (file) handleFileUpload('profile', file)
+                            // Reset input to allow re-uploading the same file
+                            e.target.value = ''
                           }}
                           disabled={uploading === 'profile'}
                         />
@@ -599,13 +631,23 @@ export default function WaitlistDashboard() {
                         )}
                         <label
                           htmlFor="logo-upload-drawer"
-                          className="flex-1"
+                          className="flex-1 cursor-pointer"
+                          onClick={(e) => {
+                            if (uploading === 'logo') {
+                              e.preventDefault()
+                              return
+                            }
+                          }}
                         >
                           <Button
                             type="button"
                             variant="outline"
                             className="w-full gap-2 border-white/10 hover:border-[#7F5BFF]/40"
                             disabled={uploading === 'logo'}
+                            onMouseDown={(e) => {
+                              // Prevent button from preventing label click
+                              e.preventDefault()
+                            }}
                           >
                             {uploading === 'logo' ? (
                               <>
@@ -628,6 +670,8 @@ export default function WaitlistDashboard() {
                           onChange={(e) => {
                             const file = e.target.files?.[0]
                             if (file) handleFileUpload('logo', file)
+                            // Reset input to allow re-uploading the same file
+                            e.target.value = ''
                           }}
                           disabled={uploading === 'logo'}
                         />
@@ -782,6 +826,8 @@ export default function WaitlistDashboard() {
                   onChange={(e) => {
                     const file = e.target.files?.[0]
                     if (file) handleFileUpload('profile', file)
+                    // Reset input to allow re-uploading the same file
+                    e.target.value = ''
                   }}
                   disabled={uploading === 'profile'}
                 />
@@ -864,6 +910,8 @@ export default function WaitlistDashboard() {
                   onChange={(e) => {
                     const file = e.target.files?.[0]
                     if (file) handleFileUpload('logo', file)
+                    // Reset input to allow re-uploading the same file
+                    e.target.value = ''
                   }}
                   disabled={uploading === 'logo'}
                 />

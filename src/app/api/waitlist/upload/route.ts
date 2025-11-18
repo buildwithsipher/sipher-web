@@ -202,14 +202,20 @@ export async function POST(request: NextRequest) {
     const filePath = `waitlist/${type}s/${fileName}`
 
     // Upload to Supabase Storage (processed or original)
-    const fileToUpload = processedBuffer || file
+    // Supabase Storage accepts File, Blob, ArrayBuffer, or Buffer
+    let fileToUpload: File | Buffer | ArrayBuffer
     const uploadOptions: any = {
       cacheControl: '3600',
       upsert: false,
     }
 
     if (processedBuffer) {
+      // Use processed Buffer directly (Supabase Storage accepts Buffer in Node.js)
+      fileToUpload = processedBuffer
       uploadOptions.contentType = `image/${optimalFormat}`
+    } else {
+      // Convert File to ArrayBuffer for consistent handling
+      fileToUpload = await file.arrayBuffer()
     }
 
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -222,8 +228,23 @@ export async function POST(request: NextRequest) {
         type,
         action: 'file_upload',
       })
+      
+      // Provide more specific error message
+      let errorMessage = 'Failed to upload file'
+      if (uploadError.message) {
+        if (uploadError.message.includes('Bucket not found')) {
+          errorMessage = 'Storage bucket not configured. Please contact support.'
+        } else if (uploadError.message.includes('The resource already exists')) {
+          errorMessage = 'File already exists. Please try again.'
+        } else if (uploadError.message.includes('new row violates row-level security')) {
+          errorMessage = 'Permission denied. Please contact support.'
+        } else {
+          errorMessage = uploadError.message
+        }
+      }
+      
       return NextResponse.json(
-        { error: 'Failed to upload file' },
+        { error: errorMessage },
         { status: 500 }
       )
     }

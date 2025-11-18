@@ -56,7 +56,7 @@ function sanitizeError(error: unknown): { message: string; name?: string; stack?
 }
 
 /**
- * Safe error logger - sanitizes sensitive data
+ * Safe error logger - sanitizes sensitive data and sends to Sentry
  */
 export function logError(message: string, error?: unknown, context?: LogContext) {
   const sanitizedError = error ? sanitizeError(error) : undefined
@@ -73,6 +73,59 @@ export function logError(message: string, error?: unknown, context?: LogContext)
     console.error(`[ERROR] ${message}`, {
       error: sanitizedError,
       context: sanitizedContext,
+    })
+  }
+
+  // Send to Sentry in production
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+    // Client-side: use dynamic import to avoid bundling issues
+    import('@sentry/nextjs').then((Sentry) => {
+      if (error instanceof Error) {
+        Sentry.captureException(error, {
+          tags: {
+            errorType: 'client_error',
+          },
+          extra: {
+            message,
+            context: sanitizedContext,
+          },
+        })
+      } else {
+        Sentry.captureMessage(message, {
+          level: 'error',
+          extra: {
+            error: sanitizedError,
+            context: sanitizedContext,
+          },
+        })
+      }
+    }).catch(() => {
+      // Silently fail if Sentry is not available
+    })
+  } else if (process.env.NODE_ENV === 'production') {
+    // Server-side: use dynamic import
+    import('@sentry/nextjs').then((Sentry) => {
+      if (error instanceof Error) {
+        Sentry.captureException(error, {
+          tags: {
+            errorType: 'server_error',
+          },
+          extra: {
+            message,
+            context: sanitizedContext,
+          },
+        })
+      } else {
+        Sentry.captureMessage(message, {
+          level: 'error',
+          extra: {
+            error: sanitizedError,
+            context: sanitizedContext,
+          },
+        })
+      }
+    }).catch(() => {
+      // Silently fail if Sentry is not available
     })
   }
 }
