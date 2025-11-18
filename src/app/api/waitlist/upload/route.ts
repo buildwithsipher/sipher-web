@@ -139,7 +139,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Virus scanning
-    const scanResult = await scanFile(arrayBuffer, file.type)
+    const buffer = Buffer.from(arrayBuffer)
+    const scanResult = await scanFile(buffer, file.type)
     if (!scanResult.safe) {
       logWarn('Virus scan failed', {
         userId: user.id,

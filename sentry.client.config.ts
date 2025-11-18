@@ -17,9 +17,6 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
   replaysSessionSampleRate: 0.1,
 
-  // Capture unhandled promise rejections
-  captureUnhandledRejections: true,
-
   // Set environment
   environment: process.env.NODE_ENV || "development",
 

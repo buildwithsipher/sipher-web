@@ -4,6 +4,11 @@ import posthog from 'posthog-js'
 import { useEffect } from 'react'
 
 export const initPostHog = () => {
+  // Skip initialization in development unless explicitly enabled
+  if (process.env.NODE_ENV === 'development' && !process.env.NEXT_PUBLIC_POSTHOG_DEBUG) {
+    return
+  }
+  
   if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
       api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
@@ -14,8 +19,6 @@ export const initPostHog = () => {
       },
       capture_pageview: true,
       capture_pageleave: true,
-      // Disable in development unless explicitly enabled
-      disabled: process.env.NODE_ENV === 'development' && !process.env.NEXT_PUBLIC_POSTHOG_DEBUG,
     })
   }
 }
