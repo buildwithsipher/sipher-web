@@ -158,6 +158,20 @@ export default function WaitlistCompletePage() {
         throw new Error(result.error || 'Failed to join waitlist')
       }
 
+      // Track successful waitlist signup with complete data
+      const { trackWaitlistSignup } = await import('@/lib/analytics/posthog')
+      const { track } = await import('@vercel/analytics')
+      
+      trackWaitlistSignup({
+        startup_stage: formData.startupStage,
+        city: formData.city,
+        startup_name: formData.startupName,
+      })
+      track('waitlist_signup', {
+        stage: formData.startupStage,
+        city: formData.city,
+      })
+
       // Redirect to waitlist dashboard
       router.push('/waitlist/dashboard')
     } catch (error: any) {

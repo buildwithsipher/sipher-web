@@ -6,10 +6,13 @@ import { Logo } from '../shared/logo'
 import SipherAsterisk from '@/components/ui/SipherAsterisk'
 import { useSipherEnergy } from '@/contexts/SipherEnergyContext'
 import { useUIStore } from '@/lib/store'
+import { trackCTAClick, getFeatureFlag, trackFeatureFlagExposure } from '@/lib/analytics/posthog'
+import { track } from '@vercel/analytics'
 
 export function Hero() {
   const { setWaitlistModalOpen } = useUIStore()
   const [isCtaHovered, setIsCtaHovered] = useState(false)
+  const [ctaText, setCtaText] = useState('Join Waitlist') // Default CTA text
   const heroRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLButtonElement>(null)
   const headlineRef = useRef<HTMLHeadingElement>(null)
@@ -31,6 +34,50 @@ export function Hero() {
   const [auraOpacity, setAuraOpacity] = useState(0.14) // Base opacity: 0.14-0.22
   const [isHoveringHero, setIsHoveringHero] = useState(false)
   const [cursorVelocity, setCursorVelocity] = useState(0)
+
+  // Waitlist count state
+  const [waitlistCount, setWaitlistCount] = useState(0)
+  
+  // Fetch waitlist count
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const response = await fetch('/api/waitlist/count')
+        if (response.ok) {
+          const data = await response.json()
+          setWaitlistCount(data.count || 0)
+        }
+      } catch (error) {
+        console.error('Failed to fetch waitlist count:', error)
+      }
+    }
+
+    fetchCount()
+    // Update every 60 seconds (reduced frequency for better performance)
+    const interval = setInterval(fetchCount, 60000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const displayedCount = waitlistCount + 100
+
+  // Feature Flag: A/B test CTA button text
+  useEffect(() => {
+    const variant = getFeatureFlag('waitlist-cta-variant')
+    
+    if (variant) {
+      // Map variants to button text
+      if (variant === 'get-early-access') {
+        setCtaText('Get Early Access')
+      } else if (variant === 'reserve-your-spot') {
+        setCtaText('Reserve Your Spot')
+      } else {
+        setCtaText('Join Waitlist') // Default
+      }
+      
+      // Track which variant user saw
+      trackFeatureFlagExposure('waitlist-cta-variant', variant as string)
+    }
+  }, [])
 
   // Handle mouse move for aura effect
   useEffect(() => {
@@ -153,7 +200,10 @@ export function Hero() {
     <>
       <section
         ref={heroRef}
-        className="relative h-screen flex items-center justify-center overflow-hidden bg-[#0b0b0c] pt-48"
+        className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 md:pt-48 pb-24 md:pb-0"
+        style={{
+          background: 'radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.06) 0%, transparent 50%), #0b0b0c'
+        }}
       >
         {/* Execution Aura - Cursor Following Effect */}
         <motion.div
@@ -215,13 +265,13 @@ export function Hero() {
         </motion.div>
 
         {/* Content Container - max-width 900px, centered */}
-        <div className="relative z-10 w-full max-w-[900px] mx-auto px-6 text-center">
+        <div className="relative z-10 w-full max-w-[900px] mx-auto px-4 sm:px-6 text-center">
           {/* Logo - Keep Sipher Logo */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="mb-16 flex justify-center"
+            className="mb-8 md:mb-16 flex justify-center"
           >
             <Logo size="large" animated />
           </motion.div>
@@ -232,9 +282,13 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
-            className="font-semibold tracking-tight leading-[0.95] mb-8 text-white"
+            className="font-semibold tracking-tight leading-[1.1] mb-6 md:mb-8 px-2"
             style={{
-              fontSize: 'clamp(72px, 8vw, 96px)',
+              fontSize: 'clamp(36px, 8vw, 96px)',
+              background: 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 50%, #a78bfa 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
             }}
           >
             Your execution deserves to be seen.
@@ -245,9 +299,9 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
-            className="text-[15px] leading-relaxed mb-12 mx-auto max-w-[600px] text-white/70 flex items-center justify-center gap-2"
+            className="text-sm md:text-[15px] leading-relaxed mb-8 md:mb-12 mx-auto max-w-[600px] text-white/80 flex flex-wrap items-center justify-center gap-1 md:gap-2 px-2"
           >
-            Where founders turn work → visibility → opportunity.
+            Where founders turn <span className="text-purple-400">work</span> → <span className="text-purple-400">visibility</span> → <span className="text-purple-400">opportunity</span>.
             <SipherAsterisk
               size={20}
               color="currentColor"
@@ -261,21 +315,30 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6, ease: 'easeOut' }}
-            className="flex flex-col items-center gap-6"
+            className="flex flex-col items-center gap-4 md:gap-6 mb-12 md:mb-20"
           >
             <motion.button
               ref={ctaRef}
-              onClick={() => setWaitlistModalOpen(true)}
+              onClick={() => {
+                const variant = getFeatureFlag('waitlist-cta-variant')
+                trackCTAClick('join_waitlist', 'hero')
+                track('cta_click', { 
+                  cta: 'join_waitlist', 
+                  location: 'hero',
+                  variant: variant || 'join-waitlist' // Track which variant was clicked
+                })
+                setWaitlistModalOpen(true)
+              }}
               onMouseEnter={() => setIsCtaHovered(true)}
               onMouseLeave={() => setIsCtaHovered(false)}
               onFocus={() => setIsCtaHovered(true)}
               onBlur={() => setIsCtaHovered(false)}
-              className="px-8 py-4 bg-white text-[#0b0b0c] text-lg font-semibold rounded-lg transition-all duration-300 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50 flex items-center gap-2"
+              className="px-6 md:px-8 py-3 md:py-4 bg-white text-[#0b0b0c] text-base md:text-lg font-semibold rounded-lg transition-all duration-300 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50 flex items-center gap-2 w-full sm:w-auto justify-center"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               aria-label="Join the waitlist"
             >
-              Join Waitlist
+              {ctaText}
               <span className={`sipher-ast-ring ${isCtaHovered ? 'hovered' : ''}`}>
                 <SipherAsterisk
                   size={16}
@@ -291,9 +354,9 @@ export function Hero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.8 }}
-              className="text-sm text-white/60"
+              className="text-sm text-white/70 px-2 mb-16 md:mb-20"
             >
-              247+ founders already on the list
+              <span className="text-purple-400 font-semibold">{displayedCount > 100 ? `${displayedCount.toLocaleString()}+` : '100+'}</span> founders already on the list
             </motion.p>
           </motion.div>
 
@@ -303,12 +366,25 @@ export function Hero() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 1.2 }}
             onClick={() => {
-              const founderMirror = document.querySelector('section');
-              if (founderMirror) {
-                founderMirror.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              // Find the next section after hero (FounderMirrorSection)
+              const sections = document.querySelectorAll('section');
+              if (sections.length > 1) {
+                // Get the second section (first one after hero)
+                const nextSection = sections[1];
+                const navbarHeight = window.innerWidth < 768 ? 80 : 120;
+                const elementPosition = nextSection.getBoundingClientRect().top + window.pageYOffset;
+                const offsetPosition = Math.max(0, elementPosition - navbarHeight);
+                
+                window.scrollTo({
+                  top: offsetPosition,
+                  behavior: 'smooth'
+                });
+              } else {
+                // Fallback: scroll down by viewport height
+                window.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
               }
             }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-white/30 rounded-lg p-2 transition-all duration-300 hover:bg-white/5"
+            className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-white/30 rounded-lg p-2 transition-all duration-300 hover:bg-white/5 z-20"
             aria-label="Scroll to see how it works"
           >
             <motion.p

@@ -5,12 +5,14 @@ import { waitlistConfirmationEmail } from '@/lib/email/templates'
 import { EMAIL_CONFIG } from '@/lib/email/config'
 import { z } from 'zod'
 import { nanoid } from 'nanoid'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { logError, logWarn } from '@/lib/logger'
 
 const waitlistSchema = z.object({
   email: z.string().email('Invalid email address'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
   startupName: z.string().min(1, 'Startup name is required'),
-  startupStage: z.enum(['idea', 'mvp', 'launched', 'revenue']),
+  startupStage: z.enum(['idea', 'mvp', 'launched', 'revenue', 'scaling']),
   linkedinUrl: z.union([
     z.string().url('Invalid LinkedIn URL'),
     z.literal(''),
@@ -22,9 +24,33 @@ const waitlistSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  let body: any = null
   try {
-    const body = await request.json()
+    body = await request.json()
     const data = waitlistSchema.parse(body)
+
+    // Rate limiting: Max 5 signups per IP per hour (prevent spam/abuse)
+    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                     request.headers.get('x-real-ip') || 
+                     'unknown'
+    const rateLimit = checkRateLimit(`signup:${clientIp}`, 5, 60 * 60 * 1000) // 5 requests per hour per IP
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Too many signup attempts. Please try again later.',
+          retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
+            'X-RateLimit-Limit': '5',
+            'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+            'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString(),
+          },
+        }
+      )
+    }
 
     const supabase = createAdminClient()
 
@@ -79,7 +105,10 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (insertError) {
-      console.error('Insert error:', insertError)
+      logError('Failed to insert waitlist user', insertError, {
+        email: data.email,
+        action: 'waitlist_signup',
+      })
       return NextResponse.json(
         { error: 'Failed to join waitlist' },
         { status: 500 }
@@ -91,7 +120,9 @@ export async function POST(request: NextRequest) {
       .from('waitlist_users')
       .select('*', { count: 'exact', head: true })
 
-    const position = count || 0
+    const actualPosition = count || 0
+    // Add 100 for "fake it till we make it" - same as dashboard
+    const displayedPosition = actualPosition > 0 ? actualPosition + 100 : 0
 
     // Send confirmation email
     try {
@@ -100,18 +131,21 @@ export async function POST(request: NextRequest) {
         to: data.email,
         ...waitlistConfirmationEmail({
           name: data.name,
-          position,
+          position: displayedPosition,
           referralCode: newUser.referral_code,
         }),
       })
     } catch (emailError) {
-      console.error('Email error:', emailError)
+      logWarn('Failed to send confirmation email', {
+        email: data.email,
+        action: 'email_send',
+      })
       // Don't fail the request if email fails
     }
 
     return NextResponse.json({
       success: true,
-      position,
+      position: displayedPosition,
       referralCode: newUser.referral_code,
     })
   } catch (error) {
@@ -122,7 +156,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.error('Waitlist error:', error)
+    // Capture error in Sentry
+    if (error instanceof Error) {
+      const Sentry = await import('@sentry/nextjs')
+      Sentry.captureException(error, {
+        tags: {
+          section: 'waitlist',
+          action: 'join',
+        },
+        extra: {
+          hasBody: !!body,
+          // Don't include email in Sentry - it's PII
+        },
+      })
+    }
+    
+    logError('Waitlist signup error', error, {
+      action: 'waitlist_signup',
+      hasBody: !!body,
+    })
+    
     const errorMessage = error instanceof Error ? error.message : 'Something went wrong'
     return NextResponse.json(
       { error: errorMessage },

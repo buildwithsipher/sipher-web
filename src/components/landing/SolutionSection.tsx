@@ -13,46 +13,37 @@ export default function SolutionSection() {
   return (
     <section
       ref={sectionRef}
-      className="w-full py-20 md:py-32 px-4 sm:px-6 relative bg-[#0B0B0C]"
+      className="w-full py-16 md:py-20 lg:py-32 px-4 sm:px-6 relative"
+      style={{
+        background: 'radial-gradient(circle at 80% 50%, rgba(139, 92, 246, 0.04) 0%, transparent 50%), #0B0B0C'
+      }}
     >
       <div className="max-w-6xl mx-auto">
         {/* Section Header */}
-        <div className="text-center mb-20 md:mb-24">
+        <div className="text-center mb-12 md:mb-20 lg:mb-24">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-tight"
+            className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black mb-6 md:mb-8 leading-tight px-2"
+            style={{
+              background: 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 50%, #a78bfa 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
           >
-            The Solution: Make Your Execution
-            <br className="hidden md:block" /> Impossible To Ignore
+            Sipher makes your <span className="text-purple-400">execution</span> visible.
           </motion.h2>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-            className="text-lg md:text-xl text-[#8B8B8B] max-w-3xl mx-auto mb-8 leading-relaxed"
+            className="text-base md:text-lg lg:text-xl text-white/70 max-w-3xl mx-auto leading-relaxed px-2"
           >
-            You already ship. You already build. You're doing the work.
-            <br />
-            But no one sees it — not users, not investors, not your network.
+            Log your work daily. Build your <span className="text-purple-400">ProofCard</span>. Get discovered for execution, not pedigree.
           </motion.p>
-
-          {/* Subtle Animated Pulse Line */}
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={
-              isInView && !reduced
-                ? { width: "100%", opacity: 1 }
-                : { width: "100%", opacity: 1 }
-            }
-            transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
-            className="h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent mx-auto max-w-2xl"
-            style={{
-              boxShadow: isInView && !reduced ? "0 0 8px rgba(168, 85, 247, 0.3)" : undefined,
-            }}
-          />
         </div>
 
         {/* Three Cinematic Solution Pillars */}
@@ -62,16 +53,16 @@ export default function SolutionSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="py-12 md:py-16 border-b border-white/[0.04] first:border-t"
+            className="py-12 md:py-16 border-b border-purple-500/10 first:border-t"
           >
             <div className="max-w-4xl mx-auto">
               <h3 className="text-3xl md:text-4xl font-black text-white mb-4">
-                1. BuilderLog
+                1. <span className="text-purple-400">BuilderLog</span>
               </h3>
-              <p className="text-lg md:text-xl text-[#8B8B8B] mb-3 leading-relaxed">
+              <p className="text-lg md:text-xl text-white/80 mb-3 leading-relaxed">
                 Turn your daily work into a living history.
               </p>
-              <p className="text-base md:text-lg text-[#8B8B8B]/80 leading-relaxed">
+              <p className="text-base md:text-lg text-white/70 leading-relaxed">
                 Your updates become clean, time-stamped proof of your momentum.
               </p>
             </div>
@@ -82,16 +73,16 @@ export default function SolutionSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="py-12 md:py-16 border-b border-white/[0.04]"
+            className="py-12 md:py-16 border-b border-purple-500/10"
           >
             <div className="max-w-4xl mx-auto">
               <h3 className="text-3xl md:text-4xl font-black text-white mb-4">
-                2. ProofCard
+                2. <span className="text-purple-400">ProofCard</span>
               </h3>
-              <p className="text-lg md:text-xl text-[#8B8B8B] mb-3 leading-relaxed">
+              <p className="text-lg md:text-xl text-white/80 mb-3 leading-relaxed">
                 Your execution, made visible.
               </p>
-              <p className="text-base md:text-lg text-[#8B8B8B]/80 leading-relaxed">
+              <p className="text-base md:text-lg text-white/70 leading-relaxed">
                 Your logs transform into an elegant record of discipline, velocity, and progress.
               </p>
             </div>
@@ -102,16 +93,16 @@ export default function SolutionSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="py-12 md:py-16 border-b border-white/[0.06]"
+            className="py-12 md:py-16 border-b border-purple-500/10"
           >
             <div className="max-w-4xl mx-auto">
               <h3 className="text-3xl md:text-4xl font-black text-white mb-4">
-                3. Discovery
+                3. <span className="text-purple-400">Discovery</span>
               </h3>
-              <p className="text-lg md:text-xl text-[#8B8B8B] mb-3 leading-relaxed">
+              <p className="text-lg md:text-xl text-white/80 mb-3 leading-relaxed">
                 Investors find you through proof, not pedigree.
               </p>
-              <p className="text-base md:text-lg text-[#8B8B8B]/80 leading-relaxed">
+              <p className="text-base md:text-lg text-white/70 leading-relaxed">
                 Your execution becomes a signal — not your college name.
               </p>
             </div>

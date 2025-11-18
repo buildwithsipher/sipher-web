@@ -121,6 +121,7 @@ type TabType = 'problem' | 'solution' | 'playground' | 'proof' | 'pulse' | 'road
 function LandingPageContent() {
   const { waitlistModalOpen, setWaitlistModalOpen, activeTab, setActiveTab } = useUIStore()
   const [localActiveTab, setLocalActiveTab] = useState<TabType>(activeTab as TabType || 'problem')
+  const [waitlistCount, setWaitlistCount] = useState(0)
   const searchParams = useSearchParams()
   const router = useRouter()
   
@@ -164,6 +165,14 @@ function LandingPageContent() {
   const handleTabSwitch = (tabId: TabType) => {
     setLocalActiveTab(tabId)
     setActiveTab(tabId)
+    
+    // Track section view
+    import('@/lib/analytics/posthog').then(({ trackSectionView }) => {
+      trackSectionView(tabId)
+    })
+    import('@vercel/analytics').then(({ track }) => {
+      track('section_view', { section: tabId })
+    })
   }
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -195,6 +204,26 @@ function LandingPageContent() {
     { name: 'Meera P.', location: 'Mumbai', action: ' calculated ProofCard: 92', time: '8 min ago', score: 92 },
     { name: 'Kiran R.', location: 'Hyderabad', action: ' joined the waitlist', time: '12 min ago', score: null },
   ])
+
+  // Fetch waitlist count
+  useEffect(() => {
+    async function fetchCount() {
+      try {
+        const response = await fetch('/api/waitlist/count')
+        if (response.ok) {
+          const data = await response.json()
+          setWaitlistCount(data.count || 0)
+        }
+      } catch (error) {
+        console.error('Failed to fetch waitlist count:', error)
+      }
+    }
+    
+    fetchCount()
+    // Update every 60 seconds
+    const interval = setInterval(fetchCount, 60000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Track tab exploration for navigation feedback
   useEffect(() => {
@@ -470,8 +499,7 @@ function LandingPageContent() {
         >
           <div className="container mx-auto flex items-center justify-between gap-4">
             <div className="flex-1">
-              <p className="text-sm font-semibold">Join <AnimatedCounter target={247} suffix="+" /> founders</p>
-              <p className="text-xs text-muted-foreground">12 spots left</p>
+              <p className="text-sm font-semibold">Join <AnimatedCounter target={waitlistCount + 100} suffix="+" /> founders</p>
             </div>
             <Button
               onClick={() => setWaitlistModalOpen(true)}

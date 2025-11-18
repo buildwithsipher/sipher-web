@@ -63,7 +63,10 @@ export default function FounderMirrorSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full bg-[#0b0b0c] py-20 md:py-32 px-4 sm:px-6"
+      className="relative w-full py-20 md:py-32 px-4 sm:px-6"
+      style={{
+        background: 'radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.03) 0%, transparent 50%), #0b0b0c'
+      }}
     >
       <div className="max-w-[780px] mx-auto text-center">
         {/* Title */}
@@ -79,13 +82,13 @@ export default function FounderMirrorSection() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-          className="text-sm md:text-base text-white/50 mb-8 md:mb-12"
+          className="text-sm md:text-base text-white/60 mb-8 md:mb-12"
         >
           Move your cursor to explore
         </motion.p>
 
         {/* Dynamic Phrase Container */}
-        <div className="relative h-[4rem] md:h-[5rem] flex items-center justify-center mb-8 md:mb-12">
+        <div className="relative h-[5rem] md:h-[6rem] flex items-center justify-center mb-8 md:mb-12">
           <AnimatePresence mode="wait">
             <motion.div
               key={activePhraseIndex}
@@ -93,18 +96,28 @@ export default function FounderMirrorSection() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{
-                duration: 0.4,
-                ease: [0.25, 0.1, 0.25, 1], // Custom easing for premium feel
+                duration: 0.5,
+                ease: [0.25, 0.1, 0.25, 1],
               }}
-              className="text-3xl md:text-4xl font-medium text-white"
+              className="relative text-center px-4"
             >
-              {STRUGGLES[activePhraseIndex]}
+              <span className="text-4xl md:text-5xl font-semibold text-purple-400 relative inline-block tracking-tight leading-tight">
+                {STRUGGLES[activePhraseIndex]}
+                {/* Elegant underline accent */}
+                <motion.div
+                  className="absolute -bottom-3 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-purple-400/50 to-transparent"
+                  initial={{ scaleX: 0, opacity: 0 }}
+                  animate={{ scaleX: 1, opacity: 1 }}
+                  exit={{ scaleX: 0, opacity: 0 }}
+                  transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+                />
+              </span>
             </motion.div>
           </AnimatePresence>
         </div>
 
         {/* Bottom Static Line */}
-        <p className="text-base md:text-lg text-white/60 leading-relaxed">
+        <p className="text-base md:text-lg text-white/70 leading-relaxed">
           You're not alone. Every builder feels this before they're seen.
         </p>
       </div>

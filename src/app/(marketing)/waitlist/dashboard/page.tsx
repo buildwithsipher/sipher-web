@@ -21,6 +21,12 @@ import {
   Target,
   Zap,
   Award,
+  ArrowRight,
+  ChevronRight,
+  Clock,
+  Upload,
+  Plus,
+  Image as ImageIcon,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -33,9 +39,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import { Logo } from '@/components/shared/logo'
 import { toast } from 'sonner'
-import { format } from 'date-fns'
+import { format, formatDistanceToNow } from 'date-fns'
 
 interface WaitlistUser {
   id: string
@@ -47,6 +67,8 @@ interface WaitlistUser {
   city: string | null
   what_building: string | null
   website_url: string | null
+  profile_picture_url: string | null
+  startup_logo_url: string | null
   status: string
   referral_code: string
   created_at: string
@@ -64,8 +86,9 @@ export default function WaitlistDashboard() {
   const [user, setUser] = useState<any>(null)
   const [waitlistData, setWaitlistData] = useState<WaitlistUser | null>(null)
   const [position, setPosition] = useState<number>(0)
+  const [displayedPosition, setDisplayedPosition] = useState<number>(0)
   const [totalUsers, setTotalUsers] = useState<number>(0)
-  const [isEditing, setIsEditing] = useState(false)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [liveActivities, setLiveActivities] = useState<LiveActivity[]>([])
   const [communityStats, setCommunityStats] = useState({
     totalFounders: 0,
@@ -81,33 +104,21 @@ export default function WaitlistDashboard() {
     website_url: '',
     linkedin_url: '',
   })
+  const [expandedRoadmap, setExpandedRoadmap] = useState<string[]>([])
+  const [uploading, setUploading] = useState<'profile' | 'logo' | null>(null)
 
   useEffect(() => {
     fetchUserData()
     fetchLiveActivities()
     fetchCommunityStats()
 
-    // Subscribe to real-time updates
-    const supabase = createClient()
-    const channel = supabase
-      .channel('waitlist_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'waitlist_users',
-        },
-        () => {
-          fetchUserData()
-          fetchLiveActivities()
-          fetchCommunityStats()
-        }
-      )
-      .subscribe()
+    // Poll for live activities updates every 30 seconds
+    const interval = setInterval(() => {
+      fetchLiveActivities()
+    }, 30000)
 
     return () => {
-      supabase.removeChannel(channel)
+      clearInterval(interval)
     }
   }, [])
 
@@ -154,14 +165,18 @@ export default function WaitlistDashboard() {
       linkedin_url: waitlistUser.linkedin_url || '',
     })
 
-    // Calculate position
-    const { data: usersBeforeMe, error: posError } = await supabase
-      .from('waitlist_users')
-      .select('id', { count: 'exact', head: true })
-      .lt('created_at', waitlistUser.created_at)
-
-    if (!posError) {
-      setPosition((usersBeforeMe as any) + 1)
+    // Calculate position using API route (bypasses RLS)
+    try {
+      const positionResponse = await fetch('/api/waitlist/position')
+      if (positionResponse.ok) {
+        const { position: actualPos, displayedPosition: displayPos } = await positionResponse.json()
+        setPosition(actualPos)
+        setDisplayedPosition(displayPos)
+      } else {
+        console.error('Failed to fetch position')
+      }
+    } catch (positionError) {
+      console.error('Position calculation error:', positionError)
     }
 
     // Get total count
@@ -173,44 +188,20 @@ export default function WaitlistDashboard() {
   }
 
   async function fetchLiveActivities() {
-    const supabase = createClient()
+    try {
+      // Use API route with admin client to bypass RLS and fetch all users
+      const response = await fetch('/api/waitlist/activities')
+      
+      if (!response.ok) {
+        console.error('Failed to fetch activities')
+        setLiveActivities([])
+        return
+      }
 
-    // For live activities, we'll show limited data (anonymized)
-    // Since RLS might block this, we'll use a simpler approach
-    // Try to fetch, but gracefully handle if blocked
-    const { data, error } = await supabase
-      .from('waitlist_users')
-      .select('id, city, startup_name, created_at')
-      .order('created_at', { ascending: false })
-      .limit(10)
-
-    if (error) {
+      const { activities } = await response.json()
+      setLiveActivities(activities || [])
+    } catch (error) {
       console.error('Live activities error:', error)
-      // Don't show error to user, just use empty array or mock data
-      // Show some mock activity to keep the UI working
-      setLiveActivities([
-        {
-          id: '1',
-          action: 'joined the waitlist',
-          city: 'India',
-          timestamp: new Date().toISOString(),
-        },
-      ])
-      return
-    }
-
-    if (data && data.length > 0) {
-      const activities: LiveActivity[] = data.map((u) => ({
-        id: u.id,
-        action: u.startup_name
-          ? `joined from ${u.city || 'India'}`
-          : `joined the waitlist`,
-        city: u.city,
-        timestamp: u.created_at,
-      }))
-      setLiveActivities(activities)
-    } else {
-      // Show placeholder if no data
       setLiveActivities([])
     }
   }
@@ -218,14 +209,12 @@ export default function WaitlistDashboard() {
   async function fetchCommunityStats() {
     const supabase = createClient()
 
-    // Get total count (this might be blocked by RLS, so we'll handle gracefully)
     const { count, error: countError } = await supabase
       .from('waitlist_users')
       .select('*', { count: 'exact', head: true })
 
     if (countError) {
       console.error('Community stats error:', countError)
-      // Use default values if RLS blocks
       setCommunityStats({
         totalFounders: 0,
         cities: 0,
@@ -234,15 +223,14 @@ export default function WaitlistDashboard() {
       return
     }
 
-    // Try to get cities (might be blocked by RLS)
     const { data: cities, error: citiesError } = await supabase
       .from('waitlist_users')
       .select('city')
       .not('city', 'is', null)
 
     const uniqueCities = new Set(
-      cities && !citiesError 
-        ? cities.map((c) => c.city).filter(Boolean) 
+      cities && !citiesError
+        ? cities.map((c) => c.city).filter(Boolean)
         : []
     )
 
@@ -275,8 +263,77 @@ export default function WaitlistDashboard() {
     }
 
     toast.success('Profile updated!')
-    setIsEditing(false)
+    setIsSheetOpen(false)
     fetchUserData()
+  }
+
+  async function handleFileUpload(type: 'profile' | 'logo', file: File) {
+    if (!waitlistData) return
+
+    setUploading(type)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', type)
+      formData.append('userId', waitlistData.id)
+
+      const response = await fetch('/api/waitlist/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const { error } = await response.json()
+        throw new Error(error || 'Upload failed')
+      }
+
+      const { url } = await response.json()
+      
+      // Update local state immediately
+      setWaitlistData({
+        ...waitlistData,
+        [type === 'profile' ? 'profile_picture_url' : 'startup_logo_url']: url,
+      })
+
+      toast.success(
+        type === 'profile'
+          ? 'Nice. Your profile looks more founder-ready now.'
+          : 'Great — your startup page will look better in beta.'
+      )
+
+      // Refresh data
+      fetchUserData()
+    } catch (error: any) {
+      console.error('Upload error:', error)
+      toast.error(error.message || 'Failed to upload image')
+    } finally {
+      setUploading(null)
+    }
+  }
+
+  // Calculate profile completeness
+  function calculateCompleteness() {
+    if (!waitlistData) return 0
+
+    let score = 0
+    const fields = [
+      waitlistData.name,
+      waitlistData.startup_name,
+      waitlistData.startup_stage,
+      waitlistData.city,
+      waitlistData.what_building,
+      waitlistData.profile_picture_url,
+      waitlistData.startup_logo_url,
+      waitlistData.website_url,
+      waitlistData.linkedin_url,
+    ]
+
+    fields.forEach((field) => {
+      if (field) score += 1
+    })
+
+    return Math.round((score / fields.length) * 100)
   }
 
   async function handleSignOut() {
@@ -287,35 +344,88 @@ export default function WaitlistDashboard() {
 
   if (!waitlistData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0B0B0C]">
+      <div className="min-h-screen flex items-center justify-center bg-[#0B0B0F]">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading your dashboard...</p>
+          <div className="w-12 h-12 border-4 border-[#7F5BFF] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-[#A0A0A8]">Loading your dashboard...</p>
         </div>
       </div>
     )
   }
 
-  const percentageComplete = totalUsers > 0 ? (position / totalUsers) * 100 : 0
+  // Launch date is one week from now
+  const oneWeekFromNow = new Date()
+  oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7)
+  const launchDateFormatted = format(oneWeekFromNow, 'MMMM d, yyyy')
   const daysUntilLaunch = Math.ceil(
-    (new Date('2026-02-01').getTime() - new Date().getTime()) /
+    (oneWeekFromNow.getTime() - new Date().getTime()) /
       (1000 * 60 * 60 * 24)
   )
 
+  // Get first name for greeting
+  const firstName = waitlistData.name?.split(' ')[0] || 'Founder'
+
+  // Review progress steps
+  const reviewSteps = [
+    {
+      id: 'submitted',
+      label: 'Profile Submitted',
+      status: 'completed',
+      description: 'Completed',
+    },
+    {
+      id: 'review',
+      label: 'Under Review',
+      status: waitlistData.status === 'pending' ? 'active' : 'completed',
+      description: 'In Queue',
+    },
+    {
+      id: 'approved',
+      label: 'Approved',
+      status: waitlistData.status === 'approved' ? 'active' : waitlistData.status === 'activated' ? 'completed' : 'pending',
+      description: 'Awaiting activation',
+    },
+    {
+      id: 'access',
+      label: 'Early Access',
+      status: waitlistData.status === 'activated' ? 'active' : 'pending',
+      description: "You'll receive an email",
+    },
+  ]
+
+  const roadmapItems = [
+    {
+      id: 'beta',
+      title: 'Private Beta',
+      date: 'Nov 2025',
+      features: ['BuilderLog', 'ProofCard', 'Analytics'],
+    },
+    {
+      id: 'community',
+      title: 'Community Drop',
+      date: 'Dec 2025',
+      features: ['Playbooks', 'Circles', 'Resources'],
+    },
+    {
+      id: 'investor',
+      title: 'Investor Access',
+      date: 'Jan 2026',
+      features: ['VC Search', 'Intros', 'Discovery Engine'],
+    },
+  ]
+
   return (
-    <div className="min-h-screen bg-[#0B0B0C]">
+    <div className="min-h-screen bg-[#0B0B0F] text-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0B0B0C]/80 backdrop-blur-lg">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0B0B0F]/80 backdrop-blur-lg">
         <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <Logo size="small" animated={false} />
-
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-white">{waitlistData.name}</p>
-                <p className="text-xs text-white/60">{waitlistData.email}</p>
+                <p className="text-xs text-[#A0A0A8]">{waitlistData.email}</p>
               </div>
-
               <Button
                 variant="ghost"
                 size="icon"
@@ -329,557 +439,463 @@ export default function WaitlistDashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 sm:px-6 py-12 max-w-6xl">
-        {/* Hero Section: Queue Position */}
+      <main className="container mx-auto px-4 sm:px-6 py-16 max-w-6xl">
+        {/* 1. Header Section (Hero Dashboard Header) */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
           className="mb-16"
         >
-          <div className="bg-gradient-to-br from-purple-500/10 via-transparent to-indigo-500/10 border border-purple-500/20 rounded-3xl p-8 md:p-12 relative overflow-hidden">
-            {/* Animated background orb */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 animate-pulse" />
-
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5 text-purple-400" />
-                <span className="text-sm font-medium text-purple-400">Your Position</span>
-              </div>
-
-              <h1 className="text-5xl md:text-7xl font-black mb-4 text-white">
-                #{position}
-              </h1>
-
-              <p className="text-xl text-white/60 mb-8">
-                out of <span className="text-white font-semibold">{totalUsers}</span> founders on the waitlist
-              </p>
-
-              {/* Progress Bar */}
-              <div className="relative h-3 bg-white/10 rounded-full overflow-hidden mb-4">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${100 - percentageComplete}%` }}
-                  transition={{ duration: 1, ease: 'easeOut' }}
-                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full"
-                />
-              </div>
-
-              <p className="text-sm text-white/60">
-                <span className="text-white font-semibold">{position - 1}</span> founders ahead of you
-              </p>
-
-              {/* Launch Countdown */}
-              <div className="mt-8 pt-8 border-t border-white/10">
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                  <div>
-                    <p className="text-sm text-white/60 mb-1">Launch Date</p>
-                    <p className="text-lg font-bold text-white">February 1, 2026</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-white/60 mb-1">Days Until Launch</p>
-                    <p className="text-lg font-bold text-purple-400">{daysUntilLaunch} days</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-white/60 mb-1">Your Status</p>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-500/10 border border-orange-500/20 rounded-full">
-                      <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
-                      <span className="text-sm font-medium text-orange-400 capitalize">
-                        {waitlistData.status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Live Pulse Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-16"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <Activity className="w-5 h-5 text-green-400" />
-            <h2 className="text-2xl font-bold text-white">Live Pulse</h2>
-            <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-xs font-medium text-green-400">Live</span>
-            </div>
-          </div>
-
-          <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 space-y-3 max-h-80 overflow-y-auto">
-            <AnimatePresence>
-              {liveActivities.map((activity, index) => (
-                <motion.div
-                  key={activity.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="flex items-center gap-4 p-3 bg-white/[0.02] rounded-lg"
-                >
-                  <div className="w-10 h-10 bg-purple-500/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Users className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white">
-                      <span className="font-medium">A founder</span>{' '}
-                      <span className="text-white/60">{activity.action}</span>
-                    </p>
-                    <p className="text-xs text-white/40">
-                      {format(new Date(activity.timestamp), 'MMM d, h:mm a')}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-
-          <p className="text-xs text-white/40 text-center mt-4">
-            Real-time activity from founders joining Sipher. Identities are anonymized.
-          </p>
-        </motion.section>
-
-        {/* Profile Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-16"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Your Profile</h2>
-            {!isEditing ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-                className="gap-2"
-              >
-                <Edit2 className="w-4 h-4" />
-                Edit
-              </Button>
-            ) : (
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setIsEditing(false)
-                    setEditForm({
-                      name: waitlistData.name || '',
-                      startup_name: waitlistData.startup_name || '',
-                      startup_stage: waitlistData.startup_stage || '',
-                      city: waitlistData.city || '',
-                      what_building: waitlistData.what_building || '',
-                      website_url: waitlistData.website_url || '',
-                      linkedin_url: waitlistData.linkedin_url || '',
-                    })
-                  }}
-                  className="gap-2"
-                >
-                  <X className="w-4 h-4" />
-                  Cancel
-                </Button>
-                <Button size="sm" onClick={handleSaveProfile} className="gap-2">
-                  <Check className="w-4 h-4" />
-                  Save
-                </Button>
-              </div>
-            )}
-          </div>
-
-          <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 md:p-8">
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Full Name */}
-              <div>
-                <Label className="flex items-center gap-2 mb-2 text-white/70">
-                  <Users className="w-4 h-4 text-white/40" />
-                  Full Name
-                </Label>
-                {isEditing ? (
-                  <Input
-                    value={editForm.name}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, name: e.target.value })
-                    }
-                    placeholder="Your name"
-                  />
-                ) : (
-                  <p className="text-lg font-medium text-white">{waitlistData.name || '—'}</p>
-                )}
-              </div>
-
-              {/* Startup Name */}
-              <div>
-                <Label className="flex items-center gap-2 mb-2 text-white/70">
-                  <Briefcase className="w-4 h-4 text-white/40" />
-                  Startup Name
-                </Label>
-                {isEditing ? (
-                  <Input
-                    value={editForm.startup_name}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, startup_name: e.target.value })
-                    }
-                    placeholder="Your startup"
-                  />
-                ) : (
-                  <p className="text-lg font-medium text-white">
-                    {waitlistData.startup_name || '—'}
-                  </p>
-                )}
-              </div>
-
-              {/* Startup Stage */}
-              <div>
-                <Label className="flex items-center gap-2 mb-2 text-white/70">
-                  <TrendingUp className="w-4 h-4 text-white/40" />
-                  Stage
-                </Label>
-                {isEditing ? (
-                  <Select
-                    value={editForm.startup_stage}
-                    onValueChange={(value) =>
-                      setEditForm({ ...editForm, startup_stage: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select stage" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="idea">Idea</SelectItem>
-                      <SelectItem value="mvp">MVP</SelectItem>
-                      <SelectItem value="launched">Live Product</SelectItem>
-                      <SelectItem value="revenue">Revenue</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <p className="text-lg font-medium text-white capitalize">
-                    {waitlistData.startup_stage || '—'}
-                  </p>
-                )}
-              </div>
-
-              {/* City */}
-              <div>
-                <Label className="flex items-center gap-2 mb-2 text-white/70">
-                  <MapPin className="w-4 h-4 text-white/40" />
-                  City
-                </Label>
-                {isEditing ? (
-                  <Input
-                    value={editForm.city}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, city: e.target.value })
-                    }
-                    placeholder="Your city"
-                  />
-                ) : (
-                  <p className="text-lg font-medium text-white">{waitlistData.city || '—'}</p>
-                )}
-              </div>
-
-              {/* What Building */}
-              <div className="md:col-span-2">
-                <Label className="flex items-center gap-2 mb-2 text-white/70">
-                  <Sparkles className="w-4 h-4 text-white/40" />
-                  What are you building?
-                </Label>
-                {isEditing ? (
-                  <Input
-                    value={editForm.what_building}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, what_building: e.target.value })
-                    }
-                    placeholder="One-liner about your startup"
-                  />
-                ) : (
-                  <p className="text-lg font-medium text-white">
-                    {waitlistData.what_building || '—'}
-                  </p>
-                )}
-              </div>
-
-              {/* Website */}
-              <div>
-                <Label className="flex items-center gap-2 mb-2 text-white/70">
-                  <LinkIcon className="w-4 h-4 text-white/40" />
-                  Website / Product
-                </Label>
-                {isEditing ? (
-                  <Input
-                    value={editForm.website_url}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, website_url: e.target.value })
-                    }
-                    placeholder="https://yourproduct.com"
-                    type="url"
-                  />
-                ) : waitlistData.website_url ? (
-                  <a
-                    href={waitlistData.website_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-lg font-medium text-purple-400 hover:underline"
-                  >
-                    {waitlistData.website_url}
-                  </a>
-                ) : (
-                  <p className="text-lg font-medium text-white">—</p>
-                )}
-              </div>
-
-              {/* LinkedIn */}
-              <div>
-                <Label className="flex items-center gap-2 mb-2 text-white/70">
-                  <Linkedin className="w-4 h-4 text-white/40" />
-                  LinkedIn
-                </Label>
-                {isEditing ? (
-                  <Input
-                    value={editForm.linkedin_url}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, linkedin_url: e.target.value })
-                    }
-                    placeholder="https://linkedin.com/in/yourprofile"
-                    type="url"
-                  />
-                ) : waitlistData.linkedin_url ? (
-                  <a
-                    href={waitlistData.linkedin_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-lg font-medium text-purple-400 hover:underline"
-                  >
-                    View Profile
-                  </a>
-                ) : (
-                  <p className="text-lg font-medium text-white">—</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* What's Next: Roadmap */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mb-16"
-        >
-          <h2 className="text-2xl font-bold mb-6 text-white">What's Next</h2>
-
           <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-500 via-indigo-500 to-pink-500" />
-
-            <div className="space-y-8">
-              {/* Phase 1 */}
-              <div className="relative flex gap-6">
-                <div className="flex-shrink-0 w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center relative z-10">
-                  <Calendar className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1 pt-2">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-bold text-white">Phase 1: Private Beta</h3>
-                    <span className="px-2 py-1 bg-purple-500/10 border border-purple-500/20 rounded text-xs font-medium text-purple-400">
-                      Feb 1, 2026
-                    </span>
-                  </div>
-                  <p className="text-white/60 mb-3">
-                    First 50 founders get access to BuilderLog and ProofCard
-                  </p>
-                  <ul className="space-y-2 text-sm text-white/60">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                      <span>Daily execution logging (30 seconds)</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                      <span>ProofCard score calculation</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                      <span>Shareable public profile</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Phase 2 */}
-              <div className="relative flex gap-6">
-                <div className="flex-shrink-0 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center relative z-10">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1 pt-2">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-bold text-white">Phase 2: Community</h3>
-                    <span className="px-2 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded text-xs font-medium text-indigo-400">
-                      Mar 2026
-                    </span>
-                  </div>
-                  <p className="text-white/60 mb-3">
-                    The Forge + Resources launch for all beta users
-                  </p>
-                  <ul className="space-y-2 text-sm text-white/60">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
-                      <span>High-trust founder community</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
-                      <span>Domain-specific playbooks</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
-                      <span>Fundraising checklists</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Phase 3 */}
-              <div className="relative flex gap-6">
-                <div className="flex-shrink-0 w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center relative z-10">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1 pt-2">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-bold text-white">Phase 3: VC Discovery</h3>
-                    <span className="px-2 py-1 bg-pink-500/10 border border-pink-500/20 rounded text-xs font-medium text-pink-400">
-                      Apr 2026
-                    </span>
-                  </div>
-                  <p className="text-white/60 mb-3">
-                    VCs get access to search founders by ProofCard
-                  </p>
-                  <ul className="space-y-2 text-sm text-white/60">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-pink-400 flex-shrink-0 mt-0.5" />
-                      <span>VC portal with founder search</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-pink-400 flex-shrink-0 mt-0.5" />
-                      <span>Inbound intro requests</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-pink-400 flex-shrink-0 mt-0.5" />
-                      <span>Proof-based discovery</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
+            {/* Glowing asterisk background */}
+            <div className="absolute -top-8 -left-8 w-32 h-32 text-[#7F5BFF]/20 blur-3xl">
+              <Sparkles className="w-full h-full" />
             </div>
-          </div>
-        </motion.section>
 
-        {/* Why You're Here: Manifesto */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mb-16"
-        >
-          <h2 className="text-2xl font-bold mb-6 text-white">Why You're Here</h2>
-
-          <div className="bg-gradient-to-br from-purple-500/10 via-transparent to-indigo-500/10 border border-purple-500/20 rounded-2xl p-8 md:p-12">
-            <div className="max-w-3xl">
-              <h3 className="text-3xl md:text-4xl font-black leading-tight mb-6 text-white">
-                You're early to a movement that will change how founders are evaluated.
-              </h3>
-
-              <div className="space-y-4 text-lg text-white/60 leading-relaxed">
-                <p>
-                  For too long, <span className="text-white font-semibold">credentials</span> have mattered more than{' '}
-                  <span className="text-white font-semibold">execution</span>.
-                </p>
-                <p>
-                  Your college. Your network. Your last name.
-                </p>
-                <p>
-                  But you know the truth: <span className="text-white font-semibold">shipping matters</span>.
-                </p>
-                <p>
-                  Every feature you build. Every user you talk to. Every bug you fix at 2 AM.
-                </p>
-                <p>
-                  <span className="text-purple-400 font-bold">That's what Sipher measures.</span>
-                </p>
+            <div className="relative bg-[rgba(255,255,255,0.04)] border border-white/10 rounded-[20px] p-8 backdrop-blur-xl">
+              <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-semibold mb-2 text-white">
+                    ✦ You're Early, {firstName}
+                  </h1>
+                </div>
               </div>
 
-              <div className="mt-8 pt-8 border-t border-white/10">
-                <p className="text-sm text-white/60 italic">
-                  You're not here because of what you studied.
-                  <br />
-                  You're here because of what you <span className="text-white font-semibold not-italic">build</span>.
+              <div className="flex items-center gap-3 flex-wrap mb-6">
+                {/* Position Badge */}
+                <div className="px-4 py-2 bg-gradient-to-r from-indigo-500/20 to-[#7F5BFF]/20 border border-[#7F5BFF]/30 rounded-full">
+                  <span className="text-sm font-medium text-white">
+                    Position #{displayedPosition}
+                  </span>
+                </div>
+
+                {/* Status Badge */}
+                <div className="px-4 py-2 bg-[rgba(255,255,255,0.04)] border border-white/10 rounded-full flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    waitlistData.status === 'pending' ? 'bg-orange-400 animate-pulse' :
+                    waitlistData.status === 'approved' ? 'bg-blue-400' :
+                    'bg-green-400'
+                  }`} />
+                  <span className="text-sm font-medium text-white capitalize">
+                    {waitlistData.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Countdown Card */}
+              <div className="bg-gradient-to-br from-indigo-500/10 via-[#7F5BFF]/10 to-transparent border border-[#7F5BFF]/20 rounded-[20px] p-6 backdrop-blur-xl">
+                <div className="flex items-center gap-3 mb-2">
+                  <Clock className="w-5 h-5 text-[#7F5BFF]" />
+                  <h3 className="text-lg font-semibold text-white">
+                    Private Beta Access Opens In: {daysUntilLaunch} days
+                  </h3>
+                </div>
+                <p className="text-sm text-[#A0A0A8]">
+                  {launchDateFormatted}
                 </p>
               </div>
             </div>
           </div>
         </motion.section>
 
-        {/* The Community: Stats */}
+        {/* 2. Profile Card */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ duration: 0.3, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
           className="mb-16"
         >
-          <h2 className="text-2xl font-bold mb-6 text-white">The Community</h2>
+          <div className="bg-[rgba(255,255,255,0.04)] border border-white/10 rounded-[20px] p-8 backdrop-blur-xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-white">▌ Profile</h2>
+              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2 text-[#A0A0A8] hover:text-white"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Edit →
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle className="text-2xl font-semibold mb-2">Edit Profile</SheetTitle>
+                    <SheetDescription>
+                      Update your information. Changes are saved automatically.
+                    </SheetDescription>
+                  </SheetHeader>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-6">
-            {/* Total Founders */}
-            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-6">
-              <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center mb-4">
-                <Users className="w-6 h-6 text-purple-400" />
-              </div>
-              <div className="text-3xl font-black mb-2 text-white">{totalUsers}</div>
-              <p className="text-sm text-white/60">Founders on waitlist</p>
-            </div>
+                  <div className="mt-8 space-y-6">
+                    {/* Founder Photo Upload */}
+                    <div className="space-y-2">
+                      <Label className="text-sm text-[#A0A0A8]">Founder Photo</Label>
+                      <div className="flex items-center gap-4">
+                        {waitlistData?.profile_picture_url ? (
+                          <img
+                            src={waitlistData.profile_picture_url}
+                            alt="Profile"
+                            className="w-16 h-16 rounded-full object-cover border-2 border-[#7F5BFF]/30"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 rounded-full border-2 border-dashed border-white/20 bg-[rgba(255,255,255,0.02)] flex items-center justify-center">
+                            <ImageIcon className="w-6 h-6 text-white/40" />
+                          </div>
+                        )}
+                        <label
+                          htmlFor="profile-upload-drawer"
+                          className="flex-1"
+                        >
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full gap-2 border-white/10 hover:border-[#7F5BFF]/40"
+                            disabled={uploading === 'profile'}
+                          >
+                            {uploading === 'profile' ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Uploading...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-4 h-4" />
+                                {waitlistData?.profile_picture_url ? 'Change Photo' : 'Upload Photo'}
+                              </>
+                            )}
+                          </Button>
+                        </label>
+                        <input
+                          id="profile-upload-drawer"
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) handleFileUpload('profile', file)
+                          }}
+                          disabled={uploading === 'profile'}
+                        />
+                      </div>
+                      <p className="text-xs text-[#A0A0A8]">Add your vibe – optional</p>
+                    </div>
 
-            {/* Cities */}
-            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-6">
-              <div className="w-12 h-12 bg-indigo-500/10 rounded-lg flex items-center justify-center mb-4">
-                <MapPin className="w-6 h-6 text-indigo-400" />
-              </div>
-              <div className="text-3xl font-black mb-2 text-white">{communityStats.cities}+</div>
-              <p className="text-sm text-white/60">Cities across India</p>
-            </div>
+                    {/* Startup Logo Upload */}
+                    <div className="space-y-2">
+                      <Label className="text-sm text-[#A0A0A8]">Startup Logo</Label>
+                      <div className="flex items-center gap-4">
+                        {waitlistData?.startup_logo_url ? (
+                          <img
+                            src={waitlistData.startup_logo_url}
+                            alt="Logo"
+                            className="w-16 h-16 rounded-xl object-cover border border-white/10 bg-[rgba(255,255,255,0.02)]"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 rounded-xl border-2 border-dashed border-white/20 bg-[rgba(255,255,255,0.02)] flex items-center justify-center">
+                            <ImageIcon className="w-6 h-6 text-white/40" />
+                          </div>
+                        )}
+                        <label
+                          htmlFor="logo-upload-drawer"
+                          className="flex-1"
+                        >
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full gap-2 border-white/10 hover:border-[#7F5BFF]/40"
+                            disabled={uploading === 'logo'}
+                          >
+                            {uploading === 'logo' ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Uploading...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-4 h-4" />
+                                {waitlistData?.startup_logo_url ? 'Change Logo' : 'Upload Logo'}
+                              </>
+                            )}
+                          </Button>
+                        </label>
+                        <input
+                          id="logo-upload-drawer"
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) handleFileUpload('logo', file)
+                          }}
+                          disabled={uploading === 'logo'}
+                        />
+                      </div>
+                      <p className="text-xs text-[#A0A0A8]">Add your startup logo – optional</p>
+                    </div>
 
-            {/* Avg Stage */}
-            <div className="bg-white/[0.02] border border-white/10 rounded-xl p-6">
-              <div className="w-12 h-12 bg-pink-500/10 rounded-lg flex items-center justify-center mb-4">
-                <TrendingUp className="w-6 h-6 text-pink-400" />
-              </div>
-              <div className="text-3xl font-black mb-2 text-white">MVP</div>
-              <p className="text-sm text-white/60">Most common stage</p>
-            </div>
-          </div>
-
-          <div className="bg-white/[0.02] border border-white/10 rounded-xl p-6">
-            <h3 className="font-semibold mb-4 text-white">Top Cities</h3>
-            <div className="space-y-3">
-              {['Bangalore', 'Hyderabad', 'Mumbai', 'Delhi', 'Pune'].map((city, index) => (
-                <div key={city} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-white/60 w-6">{index + 1}.</span>
-                    <span className="font-medium text-white">{city}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-purple-500 rounded-full"
-                        style={{ width: `${100 - index * 15}%` }}
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-sm text-[#A0A0A8]">Full Name</Label>
+                      <Input
+                        id="name"
+                        value={editForm.name}
+                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                        className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white"
                       />
                     </div>
-                    <span className="text-sm text-white/60 w-12 text-right">
-                      {Math.floor(totalUsers * (100 - index * 15) / 500)}
-                    </span>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="startup_name" className="text-sm text-[#A0A0A8]">Startup</Label>
+                      <Input
+                        id="startup_name"
+                        value={editForm.startup_name}
+                        onChange={(e) => setEditForm({ ...editForm, startup_name: e.target.value })}
+                        className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="startup_stage" className="text-sm text-[#A0A0A8]">Stage</Label>
+                      <Select
+                        value={editForm.startup_stage}
+                        onValueChange={(value) => setEditForm({ ...editForm, startup_stage: value })}
+                      >
+                        <SelectTrigger className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white">
+                          <SelectValue placeholder="Select stage" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="idea">Idea</SelectItem>
+                          <SelectItem value="mvp">MVP</SelectItem>
+                          <SelectItem value="launched">Launched</SelectItem>
+                          <SelectItem value="revenue">Revenue</SelectItem>
+                          <SelectItem value="scaling">Scaling</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="city" className="text-sm text-[#A0A0A8]">City</Label>
+                      <Input
+                        id="city"
+                        value={editForm.city}
+                        onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                        className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="what_building" className="text-sm text-[#A0A0A8]">Category</Label>
+                      <Input
+                        id="what_building"
+                        value={editForm.what_building}
+                        onChange={(e) => setEditForm({ ...editForm, what_building: e.target.value })}
+                        className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="website_url" className="text-sm text-[#A0A0A8]">Website</Label>
+                      <Input
+                        id="website_url"
+                        value={editForm.website_url}
+                        onChange={(e) => setEditForm({ ...editForm, website_url: e.target.value })}
+                        type="url"
+                        className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="linkedin_url" className="text-sm text-[#A0A0A8]">LinkedIn</Label>
+                      <Input
+                        id="linkedin_url"
+                        value={editForm.linkedin_url}
+                        onChange={(e) => setEditForm({ ...editForm, linkedin_url: e.target.value })}
+                        type="url"
+                        className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white"
+                      />
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setIsSheetOpen(false)}
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleSaveProfile}
+                        className="flex-1 bg-[#7F5BFF] hover:bg-[#7F5BFF]/90"
+                      >
+                        Save Changes
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+
+            {/* Founder Avatar + Name */}
+            <div className="flex items-center gap-4 mb-8 pb-8 border-b border-white/5">
+              <div className="relative">
+                <label
+                  htmlFor="profile-upload"
+                  className="cursor-pointer group"
+                  title="Add your vibe – optional"
+                >
+                  {waitlistData.profile_picture_url ? (
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="relative"
+                    >
+                      <img
+                        src={waitlistData.profile_picture_url}
+                        alt="Profile"
+                        className="w-24 h-24 rounded-full object-cover border-2 border-[#7F5BFF]/30 shadow-lg shadow-[#7F5BFF]/20"
+                      />
+                      {uploading === 'profile' && (
+                        <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center">
+                          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-[#0B0B0F]">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <div className="w-24 h-24 rounded-full border-2 border-dashed border-white/20 bg-[rgba(255,255,255,0.02)] flex items-center justify-center group-hover:border-[#7F5BFF]/40 transition-colors">
+                      {uploading === 'profile' ? (
+                        <div className="w-6 h-6 border-2 border-[#7F5BFF] border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Plus className="w-8 h-8 text-white/40 group-hover:text-[#7F5BFF] transition-colors" />
+                      )}
+                    </div>
+                  )}
+                </label>
+                <input
+                  id="profile-upload"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handleFileUpload('profile', file)
+                  }}
+                  disabled={uploading === 'profile'}
+                />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-white mb-1">
+                  {waitlistData.name || 'Founder'}
+                </h3>
+                <p className="text-sm text-[#A0A0A8] mb-3">Founder</p>
+                {/* Profile Completeness */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[#A0A0A8]">Profile Completeness:</span>
+                  <span className="text-xs font-medium text-white">{calculateCompleteness()}%</span>
+                  <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden max-w-32">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${calculateCompleteness()}%` }}
+                      transition={{ duration: 0.5 }}
+                      className="h-full bg-gradient-to-r from-[#7F5BFF] to-indigo-500"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 mt-2 text-xs text-[#A0A0A8]">
+                  <span className={waitlistData.profile_picture_url ? 'text-green-400' : ''}>
+                    {waitlistData.profile_picture_url ? '●' : '○'} Photo {waitlistData.profile_picture_url ? 'added' : 'missing'}
+                  </span>
+                  <span className={waitlistData.startup_logo_url ? 'text-green-400' : ''}>
+                    {waitlistData.startup_logo_url ? '●' : '○'} Logo {waitlistData.startup_logo_url ? 'added' : 'missing'}
+                  </span>
+                  <span className="text-green-400">
+                    ● Startup details complete
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Startup Logo + Details */}
+            <div className="flex items-start gap-4 mb-8 pb-8 border-b border-white/5">
+              <div className="relative">
+                <label
+                  htmlFor="logo-upload"
+                  className="cursor-pointer group"
+                  title="Add your startup logo – optional"
+                >
+                  {waitlistData.startup_logo_url ? (
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="relative"
+                    >
+                      <img
+                        src={waitlistData.startup_logo_url}
+                        alt="Startup Logo"
+                        className="w-16 h-16 rounded-xl object-cover border border-white/10 bg-[rgba(255,255,255,0.02)] shadow-lg"
+                      />
+                      {uploading === 'logo' && (
+                        <div className="absolute inset-0 rounded-xl bg-black/50 flex items-center justify-center">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-[#0B0B0F]">
+                        <Check className="w-2.5 h-2.5 text-white" />
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl border-2 border-dashed border-white/20 bg-[rgba(255,255,255,0.02)] flex items-center justify-center group-hover:border-[#7F5BFF]/40 transition-colors">
+                      {uploading === 'logo' ? (
+                        <div className="w-4 h-4 border-2 border-[#7F5BFF] border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <ImageIcon className="w-6 h-6 text-white/40 group-hover:text-[#7F5BFF] transition-colors" />
+                      )}
+                    </div>
+                  )}
+                </label>
+                <input
+                  id="logo-upload"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handleFileUpload('logo', file)
+                  }}
+                  disabled={uploading === 'logo'}
+                />
+                {!waitlistData.startup_logo_url && (
+                  <p className="text-xs text-[#A0A0A8] mt-2 text-center">+ Add Logo</p>
+                )}
+              </div>
+              <div className="flex-1">
+                <h4 className="text-base font-semibold text-white mb-2">
+                  {waitlistData.startup_name || 'something'}
+                </h4>
+                <div className="space-y-1 text-sm text-[#A0A0A8]">
+                  <p>Stage: <span className="text-white">{waitlistData.startup_stage ? waitlistData.startup_stage.charAt(0).toUpperCase() + waitlistData.startup_stage.slice(1) : '—'}</span></p>
+                  <p>City: <span className="text-white">{waitlistData.city || '—'}</span></p>
+                </div>
+              </div>
+            </div>
+
+            {/* Other Profile Fields */}
+            <div className="space-y-0">
+              {[
+                { label: 'Category', value: waitlistData.what_building || '—' },
+                { label: 'Website', value: waitlistData.website_url || '—' },
+                { label: 'LinkedIn', value: waitlistData.linkedin_url || '—' },
+              ].map((field, index) => (
+                <div
+                  key={field.label}
+                  className={`py-4 ${index !== 2 ? 'border-b border-white/5' : ''} hover:bg-white/5 transition-colors`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-[#A0A0A8]">{field.label}</span>
+                    <span className="text-sm font-medium text-white">{field.value}</span>
                   </div>
                 </div>
               ))}
@@ -887,39 +903,207 @@ export default function WaitlistDashboard() {
           </div>
         </motion.section>
 
-        {/* What You Can't Do (Clear Messaging) */}
+        {/* 3. Review Progress */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ duration: 0.3, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
           className="mb-16"
         >
-          <div className="bg-white/[0.02] border border-white/10 rounded-xl p-8">
-            <h3 className="text-lg font-bold mb-4 text-white">While You Wait</h3>
-            <div className="space-y-3 text-sm text-white/60">
-              <p className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
-                Your spot is secured. No action needed.
-              </p>
-              <p className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
-                We'll review your profile manually (quality over quantity).
-              </p>
-              <p className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
-                You'll get an email when you're approved (usually within 7 days).
-              </p>
-              <p className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
-                Feel free to update your profile anytime above.
-              </p>
+          <div className="bg-[rgba(255,255,255,0.04)] border border-white/10 rounded-[20px] p-8 backdrop-blur-xl">
+            <h2 className="text-xl font-semibold mb-8 text-white">▌ Review Status</h2>
+
+            <div className="relative">
+              {/* Vertical line */}
+              <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-white/10" />
+
+              <div className="space-y-8">
+                {reviewSteps.map((step, index) => {
+                  const isCompleted = step.status === 'completed'
+                  const isActive = step.status === 'active'
+
+                  return (
+                    <div key={step.id} className="relative flex items-start gap-6">
+                      {/* Dot */}
+                      <div className="relative z-10 flex-shrink-0">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                            isCompleted
+                              ? 'bg-[#7F5BFF] border-[#7F5BFF]'
+                              : isActive
+                              ? 'bg-[#7F5BFF]/20 border-[#7F5BFF] animate-pulse'
+                              : 'bg-[rgba(255,255,255,0.04)] border-white/10'
+                          }`}
+                        >
+                          {isCompleted && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Check className="w-4 h-4 text-white" />
+                            </motion.div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 pt-1">
+                        <h3 className={`text-base font-medium mb-1 ${
+                          isActive ? 'text-white' : isCompleted ? 'text-white' : 'text-[#A0A0A8]'
+                        }`}>
+                          {step.label}
+                        </h3>
+                        <p className="text-sm text-[#A0A0A8]">{step.description}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* 4. Live Founder Pulse */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+          className="mb-16"
+        >
+          <div className="bg-[rgba(255,255,255,0.04)] border border-white/10 rounded-[20px] p-8 backdrop-blur-xl">
+            <div className="flex items-center gap-3 mb-6">
+              <h2 className="text-xl font-semibold text-white">▌ Live Founder Pulse</h2>
+              <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-xs font-medium text-green-400">Live</span>
+              </div>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-white/10">
-              <p className="text-xs text-white/60">
-                <strong className="text-white">Important:</strong> We don't do referral programs or "share to move up" tactics.{' '}
-                Your position is based on when you joined, not how many people you spam. Quality matters.
+            <div className="space-y-3 max-h-80 overflow-y-auto">
+              <AnimatePresence>
+                {liveActivities.map((activity, index) => (
+                  <motion.div
+                    key={activity.id}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ delay: index * 0.05, duration: 0.2 }}
+                    className="flex items-center gap-3 text-sm"
+                  >
+                    <span className="text-[#A0A0A8]">•</span>
+                    <span className="text-white">
+                      Founder {activity.action}
+                    </span>
+                    <span className="text-[#A0A0A8] ml-auto">
+                      {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                    </span>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
+              {liveActivities.length === 0 && (
+                <p className="text-sm text-[#A0A0A8] text-center py-8">
+                  No recent activity
+                </p>
+              )}
+            </div>
+          </div>
+        </motion.section>
+
+        {/* 5. Roadmap Timeline */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+          className="mb-16"
+        >
+          <div className="bg-[rgba(255,255,255,0.04)] border border-white/10 rounded-[20px] p-8 backdrop-blur-xl">
+            <h2 className="text-xl font-semibold mb-8 text-white">▌ What's Coming</h2>
+
+            <div className="space-y-4">
+              {roadmapItems.map((item) => (
+                <Accordion
+                  key={item.id}
+                  type="single"
+                  collapsible
+                  className="border-b border-white/5 last:border-0"
+                >
+                  <AccordionItem value={item.id} className="border-0">
+                    <AccordionTrigger className="hover:no-underline py-4">
+                      <div className="flex items-center justify-between w-full pr-4">
+                        <div className="flex items-center gap-4">
+                          <ChevronRight className="w-5 h-5 text-[#7F5BFF] transition-transform duration-200" />
+                          <div className="text-left">
+                            <h3 className="text-lg font-semibold text-white">{item.title}</h3>
+                            <p className="text-sm text-[#A0A0A8]">{item.date}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4 pl-12">
+                      <div className="flex flex-wrap gap-2">
+                        {item.features.map((feature) => (
+                          <span
+                            key={feature}
+                            className="px-3 py-1 bg-[rgba(255,255,255,0.04)] border border-white/10 rounded-full text-sm text-[#A0A0A8]"
+                          >
+                            {feature}
+                          </span>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        {/* 6. Why You're Here */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+          className="mb-16"
+        >
+          <div className="bg-[rgba(255,255,255,0.04)] border border-white/10 rounded-[20px] p-8 backdrop-blur-xl">
+            <h2 className="text-xl font-semibold mb-4 text-white">▌ Why You're Here</h2>
+            <div className="border-l-2 border-[#7F5BFF] pl-6">
+              <p className="text-lg text-white leading-relaxed">
+                Sipher makes your execution visible — not your pedigree.
               </p>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* 7. While You Wait */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+          className="mb-16"
+        >
+          <div className="bg-[rgba(255,255,255,0.04)] border border-white/10 rounded-[20px] p-8 backdrop-blur-xl">
+            <h2 className="text-xl font-semibold mb-6 text-white">▌ While You Wait</h2>
+            <div className="space-y-4">
+              {[
+                'Your spot is secured',
+                'Review takes ~7 days',
+                "You'll receive email on approval",
+                'You can update profile anytime',
+              ].map((item, index) => (
+                <motion.div
+                  key={item}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.7 + index * 0.1 }}
+                  className="flex items-center gap-3"
+                >
+                  <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
+                  <span className="text-sm text-[#A0A0A8]">{item}</span>
+                </motion.div>
+              ))}
             </div>
           </div>
         </motion.section>
@@ -929,17 +1113,12 @@ export default function WaitlistDashboard() {
       <motion.footer
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-        className="text-center text-sm text-white/60 pt-8 border-t border-white/10 mt-16"
+        transition={{ delay: 0.8 }}
+        className="text-center text-sm text-[#A0A0A8] pt-16 pb-8 border-t border-white/10 mt-16"
       >
-        <p>
-          Questions? Reply to your confirmation email.
-        </p>
-        <p className="mt-2">
-          Built in Hyderabad, India. Proof over promises.
-        </p>
+        <p>Questions? Reply to your confirmation email.</p>
+        <p className="mt-2">Built in Hyderabad, India. Proof over promises.</p>
       </motion.footer>
     </div>
   )
 }
-

@@ -27,9 +27,19 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
     
-    // Log to error tracking service (e.g., Sentry)
-    if (typeof window !== "undefined" && (window as any).Sentry) {
-      (window as any).Sentry.captureException(error, { contexts: { react: errorInfo } });
+    // Log to Sentry
+    if (typeof window !== "undefined") {
+      import("@sentry/nextjs").then((Sentry) => {
+        Sentry.captureException(error, {
+          contexts: {
+            react: {
+              componentStack: errorInfo.componentStack,
+            },
+          },
+        });
+      }).catch((err) => {
+        console.error("Failed to import Sentry:", err);
+      });
     }
   }
 

@@ -32,7 +32,10 @@ export default function FounderLetterSection() {
   return (
     <section
       ref={sectionRef}
-      className="w-full py-20 md:py-32 px-4 sm:px-6 relative bg-[#0B0B0C]"
+      className="w-full py-20 md:py-32 px-4 sm:px-6 relative"
+      style={{
+        background: 'radial-gradient(circle at 30% 50%, rgba(139, 92, 246, 0.03) 0%, transparent 50%), #0B0B0C'
+      }}
     >
       <div className="max-w-3xl mx-auto relative">
         {/* Left-side pulse line - Apple-style subtle */}

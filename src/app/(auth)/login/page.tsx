@@ -1,30 +1,41 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function LoginPage() {
+  const [error, setError] = useState<string | null>(null)
+
   useEffect(() => {
     document.title = 'Login — Sipher'
   }, [])
 
   const handleGoogleLogin = async () => {
-    const supabase = createClient()
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/waitlist/complete`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
+    try {
+      setError(null)
+      const supabase = createClient()
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=/waitlist/complete`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        }
+      })
+      if (error) {
+        console.error('Google login error:', error.message)
+        setError(error.message || 'Failed to initiate Google login. Please try again.')
+      } else if (data?.url) {
+        // Redirect to Google OAuth
+        window.location.href = data.url
+      } else {
+        setError('Unable to start Google login. Please check your configuration.')
       }
-    })
-    if (error) {
-      console.error('Google login error:', error.message)
-    } else if (data?.url) {
-      // Redirect to Google OAuth
-      window.location.href = data.url
+    } catch (err) {
+      console.error('Unexpected login error:', err)
+      setError('An unexpected error occurred. Please try again.')
     }
   }
 
@@ -42,8 +53,14 @@ export default function LoginPage() {
         Continue with Google
       </button>
 
+      {error && (
+        <div className="mt-4 p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-400 text-sm max-w-md text-center">
+          {error}
+        </div>
+      )}
+
       <p className="text-gray-500 text-sm mt-6">
-        By continuing, you agree to Sipher’s Terms of Service & Privacy Policy.
+        By continuing, you agree to Sipher's Terms of Service & Privacy Policy.
       </p>
     </div>
   )

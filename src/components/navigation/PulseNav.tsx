@@ -1,7 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
+import { Menu, X } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Problem", href: "#problem", id: "problem" },
@@ -17,15 +18,38 @@ export default function PulseNav() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<string>("problem");
   const [indicatorPosition, setIndicatorPosition] = useState({ left: 0, width: 0 });
+  const [scrolled, setScrolled] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollY } = useScroll();
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Track scroll for navbar background enhancement
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setScrolled(latest > 50);
+  });
 
   // Listen for tab switch events from landing page
   useEffect(() => {
     const handleSwitchTab = (e: Event) => {
       const customEvent = e as CustomEvent<{ tabId: string }>;
       if (customEvent.detail?.tabId) {
+        setIsTransitioning(true);
         setActiveTab(customEvent.detail.tabId);
+        // Reset transition state after animation completes
+        setTimeout(() => setIsTransitioning(false), 600);
       }
     };
 
@@ -66,10 +90,17 @@ export default function PulseNav() {
   }, [activeTab]);
 
   const scrollTo = (href: string, id: string) => {
+    // Close mobile menu if open
+    setIsMobileMenuOpen(false);
+    
+    // Trigger transition animation
+    setIsTransitioning(true);
     // First, dispatch the tab switch event to render the section
     const event = new CustomEvent("switchTab", { detail: { tabId: id } });
     window.dispatchEvent(event);
     setActiveTab(id);
+    // Reset transition state after animation completes
+    setTimeout(() => setIsTransitioning(false), 600);
     
     // Wait for the section to render, then scroll to it
     // Use multiple attempts to find the element since it's conditionally rendered
@@ -78,7 +109,7 @@ export default function PulseNav() {
       
       const el = document.querySelector(href);
       if (el) {
-        const navbarHeight = 120; // Navbar height + padding
+        const navbarHeight = isMobile ? 80 : 120; // Navbar height + padding
         const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
         const offsetPosition = Math.max(0, elementPosition - navbarHeight);
         
@@ -97,77 +128,215 @@ export default function PulseNav() {
   };
 
   return (
-    <div className="w-full fixed top-0 left-0 z-50 backdrop-blur-md bg-black/10">
-      <motion.nav
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.2 }}
-        className="flex flex-col items-center pt-6"
-      >
-        {/* Navigation Items */}
-        <div 
-          ref={containerRef}
-          className="flex gap-10 text-sm md:text-base font-medium relative"
-        >
-          {NAV_ITEMS.map((item, index) => {
-            const isActive = activeTab === item.id;
-            const isHovered = hoveredIndex === index;
+    <motion.div 
+      className="w-full fixed top-0 left-0 z-50"
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
+      {/* Enhanced glassmorphism background with scroll effect */}
+      <motion.div
+        className="absolute inset-0 backdrop-blur-xl"
+        style={{
+          background: scrolled
+            ? 'linear-gradient(180deg, rgba(11, 11, 12, 0.85) 0%, rgba(11, 11, 12, 0.75) 100%)'
+            : 'linear-gradient(180deg, rgba(11, 11, 12, 0.4) 0%, rgba(11, 11, 12, 0.2) 100%)',
+        }}
+        animate={{
+          backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'blur(12px) saturate(150%)',
+        }}
+        transition={{ duration: 0.3 }}
+      />
+      
 
-            return (
-              <button
-                key={item.href}
-                ref={(el) => { buttonRefs.current[index] = el }}
-                onClick={() => scrollTo(item.href, item.id)}
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
-                className="relative group"
-                data-index={index}
-              >
-                <span
-                  className={`transition-all duration-300 ${
-                    isActive
-                      ? "text-white"
-                      : isHovered
-                      ? "text-white/90"
-                      : "text-white/50"
-                  }`}
+      <motion.nav
+        className="relative flex flex-col items-center pt-4 md:pt-7 pb-3 md:pb-5 px-4"
+      >
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex w-full flex-col items-center">
+          <div 
+            ref={containerRef}
+            className="flex gap-8 md:gap-12 text-sm md:text-base font-medium relative pb-5"
+          >
+            {NAV_ITEMS.map((item, index) => {
+              const isActive = activeTab === item.id;
+              const isHovered = hoveredIndex === index;
+
+              return (
+                <motion.button
+                  key={item.href}
+                  ref={(el) => { buttonRefs.current[index] = el }}
+                  onClick={() => scrollTo(item.href, item.id)}
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                  className="relative group px-3 py-2"
+                  data-index={index}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                 >
-                  {item.label}
-                </span>
-                {/* Small hover underline - only show when not active */}
-                {!isActive && (
-                  <motion.div
-                    className="absolute left-1/2 -translate-x-1/2 -bottom-1 h-[0.5px] bg-white/40 origin-center"
-                    initial={{ scaleX: 0, width: 0 }}
-                    whileHover={{ scaleX: 1, width: "60%" }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                  />
-                )}
-              </button>
-            );
-          })}
-          
-          {/* Active indicator dot that moves between sections */}
-          <motion.div
-            className="absolute -bottom-1 rounded-full"
-            layoutId="activeIndicator"
-            style={{
-              left: `${indicatorPosition.left}px`,
-              width: `${indicatorPosition.width}px`,
-              height: `${indicatorPosition.width}px`,
-              background: "rgba(255, 255, 255, 0.9)",
-              boxShadow: "0 0 8px rgba(255, 255, 255, 0.6)",
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 30,
-              duration: 0.5,
-            }}
-          />
+                  <motion.span
+                    className={`relative z-10 transition-all duration-300 font-medium ${
+                      isActive
+                        ? "text-purple-400"
+                        : isHovered
+                        ? "text-purple-400/80"
+                        : "text-white/50"
+                    }`}
+                    animate={{
+                      fontWeight: isActive ? 600 : 500,
+                    }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {item.label}
+                  </motion.span>
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
 
+        {/* Mobile Navigation */}
+        <div className="md:hidden w-full">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="flex items-center justify-between w-full py-2 px-2"
+            aria-label="Toggle menu"
+          >
+            <span className={`text-sm font-medium transition-colors ${
+              isMobileMenuOpen ? "text-purple-400" : "text-white/50"
+            }`}>
+              {NAV_ITEMS.find(item => item.id === activeTab)?.label || "Menu"}
+            </span>
+            <motion.div
+              animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-5 h-5 text-white/70" />
+              ) : (
+                <Menu className="w-5 h-5 text-white/70" />
+              )}
+            </motion.div>
+          </button>
+
+          {/* Mobile Menu Dropdown */}
+          <AnimatePresence>
+            {isMobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="pt-2 pb-3 space-y-1">
+                  {NAV_ITEMS.map((item, index) => {
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.href}
+                        onClick={() => scrollTo(item.href, item.id)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                          isActive
+                            ? "text-purple-400 bg-purple-500/10"
+                            : "text-white/60 hover:text-purple-400/80 hover:bg-white/5"
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Single Minimal Pulse Line - Enhanced Animation */}
+        <div className="relative w-full max-w-4xl h-[1px] overflow-visible hidden md:block">
+          {/* Subtle base line */}
+          <div 
+            className="absolute inset-0 bg-purple-500/10"
+          />
+          
+          {/* Single flowing wave - minimal and elegant */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(90deg, transparent 0%, rgba(167, 139, 250, 0.5) 30%, rgba(139, 92, 246, 0.9) 50%, rgba(167, 139, 250, 0.5) 70%, transparent 100%)',
+              width: '50%',
+              height: '100%',
+            }}
+            animate={{
+              x: ['-50%', '150%'],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          />
+          
+          {/* Active indicator with enhanced transition animation */}
+          <motion.div
+            className="absolute top-0 h-full bg-purple-400 rounded-full"
+            layoutId="pulseIndicator"
+            style={{
+              left: `${indicatorPosition.left}px`,
+              width: '2px',
+            }}
+            animate={{
+              boxShadow: isTransitioning
+                ? [
+                    '0 0 8px rgba(167, 139, 250, 0.8)',
+                    '0 0 16px rgba(167, 139, 250, 1), 0 0 24px rgba(139, 92, 246, 0.6)',
+                    '0 0 8px rgba(167, 139, 250, 0.8)',
+                  ]
+                : '0 0 8px rgba(167, 139, 250, 0.8)',
+              scaleY: isTransitioning ? [1, 1.5, 1] : 1,
+            }}
+            transition={{
+              layout: {
+                type: "spring",
+                stiffness: 400,
+                damping: 35,
+                mass: 0.8,
+              },
+              boxShadow: {
+                duration: 0.6,
+                ease: 'easeInOut',
+              },
+              scaleY: {
+                duration: 0.6,
+                ease: 'easeInOut',
+              },
+            }}
+          />
+          
+          {/* Pulse effect on transition - subtle glow expansion */}
+          {isTransitioning && (
+            <motion.div
+              className="absolute top-1/2 -translate-y-1/2 rounded-full"
+              style={{
+                left: `${indicatorPosition.left}px`,
+                width: '4px',
+                height: '4px',
+                background: 'radial-gradient(circle, rgba(167, 139, 250, 0.8) 0%, transparent 70%)',
+                filter: 'blur(2px)',
+              }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{
+                scale: [0, 3, 0],
+                opacity: [0, 0.6, 0],
+              }}
+              transition={{
+                duration: 0.6,
+                ease: 'easeOut',
+              }}
+            />
+          )}
+        </div>
       </motion.nav>
-    </div>
+    </motion.div>
   );
 }

@@ -98,8 +98,8 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // New user, redirect to onboarding
-      const onboardingUrl = new URL('/waitlist/complete', request.url)
+      // New user, redirect to minimal onboarding
+      const onboardingUrl = new URL('/waitlist/onboarding', request.url)
       response = NextResponse.redirect(onboardingUrl)
       // Ensure all cookies are copied
       request.cookies.getAll().forEach((cookie) => {

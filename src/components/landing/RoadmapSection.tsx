@@ -42,7 +42,10 @@ export default function RoadmapSection() {
   return (
     <section
       ref={sectionRef}
-      className="w-full py-20 md:py-32 px-4 sm:px-6 relative bg-[#0B0B0C] overflow-hidden"
+      className="w-full py-20 md:py-32 px-4 sm:px-6 relative overflow-hidden"
+      style={{
+        background: 'radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.03) 0%, transparent 50%), #0B0B0C'
+      }}
     >
       <div className="max-w-5xl mx-auto">
         {/* (1) Section Header */}

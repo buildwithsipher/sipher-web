@@ -231,7 +231,7 @@ export default function LiveDemo() {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full max-w-4xl mx-auto py-12 px-4 sm:px-6"
+      className="relative w-full max-w-4xl mx-auto py-12 md:py-16 lg:py-20 px-4 sm:px-6"
       aria-labelledby="live-demo-title"
     >
       {/* Execution Aura - Cursor Following Effect */}
@@ -276,33 +276,33 @@ export default function LiveDemo() {
           />
         )}
       </motion.div>
-      <div className="relative z-10 text-center mb-12 md:mb-16">
+      <div className="relative z-10 text-center mb-10 md:mb-16 lg:mb-20">
         <h3
           id="live-demo-title"
-          className="text-4xl md:text-5xl font-black leading-tight text-white mb-4 md:mb-6"
+          className="text-3xl md:text-4xl lg:text-5xl font-black leading-tight text-white mb-4 md:mb-6 lg:mb-8 px-2"
         >
           See Sipher in Action
         </h3>
-        <p className="text-base text-muted-foreground/80 max-w-2xl mx-auto mb-4">
+        <p className="text-sm md:text-base lg:text-lg text-muted-foreground/80 max-w-2xl mx-auto mb-4 md:mb-6 leading-relaxed px-2">
           A 10-second interactive preview of how your daily work becomes visible proof. This
           is a conceptual demo — not our scoring engine.
         </p>
         {/* Transparency Note */}
-        <p className="text-xs text-muted-foreground/60 max-w-xl mx-auto mb-6">
+        <p className="text-xs text-muted-foreground/60 max-w-xl mx-auto mb-6 md:mb-8 leading-relaxed px-2">
           This demo does not represent real scoring. Sipher's actual algorithm adapts to your stage, industry, and execution pattern.
         </p>
         {/* Divider line */}
         <div className="w-24 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mx-auto" />
       </div>
 
-      <div className="relative z-10 grid gap-8 md:gap-10 md:grid-cols-3 items-start">
+      <div className="relative z-10 grid gap-4 md:gap-6 md:grid-cols-3 items-start">
         {/* Left: Builder Log */}
-        <div className="md:col-span-1 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl p-6 md:p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <label htmlFor="builder-log-input" className="block text-xs text-muted-foreground uppercase tracking-wider mb-4">
+        <div className="md:col-span-1 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl p-4 md:p-5 lg:p-6">
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
+            <label htmlFor="builder-log-input" className="block text-xs text-muted-foreground uppercase tracking-wider mb-3">
               What did you ship today?
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 id="builder-log-input"
                 ref={inputRef}
@@ -312,7 +312,7 @@ export default function LiveDemo() {
                 onFocus={() => setInputFocus(true)}
                 onBlur={() => setInputFocus(false)}
                 placeholder={placeholder}
-                className={`flex-1 px-3 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 text-sm text-white placeholder:text-muted-foreground transition-all duration-300 ${
+                className={`flex-1 px-3 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 text-sm text-white placeholder:text-muted-foreground transition-all duration-300 ${
                   inputFocus && !reduced
                     ? "focus:ring-purple-500 shadow-[0_0_0_3px_rgba(168,85,247,0.1)]"
                     : "focus:ring-purple-500"
@@ -328,7 +328,7 @@ export default function LiveDemo() {
                     : { x: 0, scale: 1 }
                 }
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="inline-flex items-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-sm font-medium hover:from-purple-600 hover:to-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-indigo-500 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-sm font-medium hover:from-purple-600 hover:to-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-indigo-500 transition-colors w-full sm:w-auto"
               >
                 Log
                 <SipherAsterisk size={14} color="white" animated={false} ariaHidden={true} />
@@ -339,15 +339,15 @@ export default function LiveDemo() {
               <button
                 type="button"
                 onClick={quickLogPlaceholder}
-                className="underline text-sm text-purple-300 hover:text-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 rounded px-1"
+                className="underline text-xs text-purple-300 hover:text-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 rounded px-1 break-words sm:whitespace-nowrap"
               >
                 Quick log: {placeholder}
               </button>
             </div>
           </form>
 
-          <div className="mt-8">
-            <div className="text-xs text-muted-foreground mb-4 uppercase tracking-wider">
+          <div className="mt-5 md:mt-6">
+            <div className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">
               Timeline (7 days)
             </div>
             <div className="overflow-hidden rounded-lg bg-white/[0.03] border border-white/[0.06] p-3">
@@ -431,14 +431,14 @@ export default function LiveDemo() {
             </motion.div>
           )}
 
-          <div className="bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl p-6 md:p-8 flex flex-col items-stretch justify-between h-full">
+          <div className="bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl p-4 md:p-5 lg:p-6 flex flex-col">
             <div>
-              <div className="flex items-start justify-between gap-4 mb-8">
-                <div>
-                  <h4 className="text-lg font-bold text-white mb-2">
+              <div className="flex items-start justify-between gap-3 md:gap-4 mb-5 md:mb-6">
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm md:text-base lg:text-lg font-bold text-white mb-1.5 md:mb-2">
                     ProofCard — preview
                   </h4>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     A visual preview of how your work looks as proof.
                   </p>
                 </div>
@@ -465,7 +465,7 @@ export default function LiveDemo() {
 
               <motion.div
                 aria-hidden="true"
-                className="mt-8 p-6 rounded-lg border bg-gradient-to-br from-white/[0.03] to-black/10 transition-all duration-300 relative"
+                className="mt-5 md:mt-6 p-3 md:p-4 lg:p-5 rounded-lg border bg-gradient-to-br from-white/[0.03] to-black/10 transition-all duration-300 relative"
                 style={{
                   borderImage: "linear-gradient(to bottom right, rgba(255,255,255,0.08), rgba(255,255,255,0.04)) 1",
                   border: "1px solid rgba(255,255,255,0.08)",
@@ -488,10 +488,10 @@ export default function LiveDemo() {
                 transition={{ duration: 0.8, ease: "easeOut" }}
               >
                 {/* Glow underline labels */}
-                <div className="text-base text-muted-foreground mb-6 flex items-center gap-6 flex-wrap">
+                <div className="text-xs text-muted-foreground mb-3 md:mb-4 flex items-center gap-2 md:gap-3 flex-wrap">
                   {/* Momentum with glow underline */}
                   <div className="relative inline-block pb-1">
-                    <span className={`text-base ${glowUnderline && reduced ? "text-white transition-colors duration-200" : ""}`}>
+                    <span className={`text-xs ${glowUnderline && reduced ? "text-white transition-colors duration-200" : ""}`}>
                       Momentum
                     </span>
                     {glowUnderline && !reduced && (
@@ -501,7 +501,7 @@ export default function LiveDemo() {
                   
                   {/* Consistency with glow underline */}
                   <div className="relative inline-block pb-1">
-                    <span className={`text-base ${glowUnderline && reduced ? "text-white transition-colors duration-200" : ""}`}>
+                    <span className={`text-xs ${glowUnderline && reduced ? "text-white transition-colors duration-200" : ""}`}>
                       Consistency
                     </span>
                     {glowUnderline && !reduced && (
@@ -511,7 +511,7 @@ export default function LiveDemo() {
                   
                   {/* Your proof gets stronger with glow underline */}
                   <div className="relative inline-block pb-1">
-                    <span className={`text-base ${glowUnderline && reduced ? "text-white transition-colors duration-200" : ""}`}>
+                    <span className={`text-xs ${glowUnderline && reduced ? "text-white transition-colors duration-200" : ""}`}>
                       Your proof gets stronger
                     </span>
                     {glowUnderline && !reduced && (
@@ -521,27 +521,27 @@ export default function LiveDemo() {
                 </div>
 
                 {/* Work logged section */}
-                <div className="flex items-start gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-400/10 flex items-center justify-center flex-shrink-0">
+                <div className="flex items-start gap-2.5 md:gap-3 mb-4 md:mb-5">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-400/10 flex items-center justify-center flex-shrink-0">
                     <SipherAsterisk
-                      size={18}
+                      size={14}
                       color="#a78bfa"
-                      className="opacity-80"
+                      className="opacity-80 md:w-4 md:h-4"
                       ariaHidden={true}
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-white text-base mb-2">
+                    <div className="font-semibold text-white text-xs md:text-sm mb-1 md:mb-1.5">
                       Work logged • added to your ProofCard
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-xs text-muted-foreground leading-relaxed">
                       No numbers shown in demo — conceptual only.
                     </div>
                   </div>
                 </div>
 
                 {/* Micro transparency text */}
-                <div className="pt-5 mt-5 border-t border-white/[0.04]">
+                <div className="pt-3 md:pt-4 mt-3 md:mt-4 border-t border-white/[0.04]">
                   <p className="text-xs text-muted-foreground/60 leading-relaxed">
                     This preview shows the concept. Real ProofCard uses actual stage, domain, and execution patterns.
                   </p>
@@ -549,22 +549,22 @@ export default function LiveDemo() {
               </motion.div>
             </div>
 
-            <div className="mt-8 text-sm text-muted-foreground">
+            <div className="mt-5 md:mt-6 text-xs text-muted-foreground leading-relaxed">
               Tip: Try logging a few items. Watch the timeline and activity evolve.
             </div>
           </div>
         </div>
 
         {/* Right: Activity feed */}
-        <div className="md:col-span-1 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl p-6 md:p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h5 className="text-sm font-semibold text-white uppercase tracking-wider">
+        <div className="md:col-span-1 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl p-4 md:p-5 lg:p-6">
+          <div className="flex items-center justify-between mb-4 md:mb-5">
+            <h5 className="text-xs md:text-sm font-semibold text-white uppercase tracking-wider">
               Recent activity
             </h5>
-            <div className="text-xs text-muted-foreground">Live preview</div>
+            <div className="text-xs text-muted-foreground whitespace-nowrap">Live preview</div>
           </div>
 
-          <div className="space-y-3 min-h-[200px]">
+          <div className="space-y-2.5 md:space-y-3 min-h-[160px] md:min-h-[180px]">
             {activities.length === 0 ? (
               <div className="text-xs text-muted-foreground">
                 No logs yet — try the quick log above.
@@ -581,7 +581,7 @@ export default function LiveDemo() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={reduced ? { opacity: 0 } : { opacity: 0, x: -8 }}
                       transition={{ duration: 0.36 }}
-                      className="relative p-3 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-start gap-3 group hover:bg-white/[0.05] transition-colors"
+                      className="relative p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-start gap-2.5 group hover:bg-white/[0.05] transition-colors"
                       role="status"
                       aria-live="polite"
                     >
@@ -590,9 +590,9 @@ export default function LiveDemo() {
                         className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-lg"
                         style={{ backgroundColor: categoryColor }}
                       />
-                      <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
                         <SipherAsterisk
-                          size={12}
+                          size={11}
                           color="#a78bfa"
                           className="opacity-80"
                           ariaHidden={true}
@@ -600,14 +600,14 @@ export default function LiveDemo() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-white/[0.06] text-muted-foreground border border-white/[0.04]">
+                          <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/[0.06] text-muted-foreground border border-white/[0.04] whitespace-nowrap">
                             {a.category}
                           </span>
                         </div>
-                        <div className="text-sm font-medium text-white truncate">
+                        <div className="text-xs font-medium text-white truncate">
                           {a.text}
                         </div>
-                        <div className="text-xs text-muted-foreground mt-1">{a.timestampText}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{a.timestampText}</div>
                       </div>
                     </motion.div>
                   );

@@ -6,6 +6,8 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { SkipNavigation } from "@/components/skip-navigation";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { AnalyticsWrapper } from "@/components/analytics-wrapper";
+import { PostHogProvider } from "@/components/analytics/PostHogProvider";
+import { GA4Provider } from "@/components/analytics/GA4Provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -97,15 +99,18 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen antialiased">
         <ErrorBoundary>
-          <SkipNavigation />
-          <SipherEnergyProvider>
-            <div id="main-content">
-              {children}
-            </div>
-            <CommandPalette />
-          </SipherEnergyProvider>
-          <Toaster position="bottom-right" theme="dark" richColors />
-          <AnalyticsWrapper />
+          <PostHogProvider>
+            <SkipNavigation />
+            <SipherEnergyProvider>
+              <div id="main-content">
+                {children}
+              </div>
+              <CommandPalette />
+            </SipherEnergyProvider>
+            <Toaster position="bottom-right" theme="dark" richColors />
+            <AnalyticsWrapper />
+            <GA4Provider />
+          </PostHogProvider>
         </ErrorBoundary>
       </body>
     </html>

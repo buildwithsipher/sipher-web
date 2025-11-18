@@ -1,7 +1,7 @@
 // Database type definitions for Sipher
 
 export type WaitlistStatus = 'pending' | 'approved' | 'activated'
-export type StartupStage = 'idea' | 'mvp' | 'launched' | 'revenue'
+export type StartupStage = 'idea' | 'mvp' | 'launched' | 'revenue' | 'scaling'
 
 export interface WaitlistUser {
   id: string
