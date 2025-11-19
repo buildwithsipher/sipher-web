@@ -13,6 +13,28 @@ export default async function DashboardPage() {
     redirect('/')
   }
 
+  // Check if user has completed onboarding
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarding_done')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.onboarding_done) {
+    // Check waitlist status
+    const { data: waitlistUser } = await supabase
+      .from('waitlist_users')
+      .select('status')
+      .eq('email', user.email)
+      .single()
+
+    if (waitlistUser?.status === 'approved' || waitlistUser?.status === 'activated') {
+      redirect('/onboarding/welcome')
+    } else {
+      redirect('/waitlist/dashboard')
+    }
+  }
+
   // Mock data - replace with real data from your database
   const mockData = {
     momentum: 87,

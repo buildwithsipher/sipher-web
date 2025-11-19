@@ -242,29 +242,44 @@ export default function WaitlistDashboard() {
   }
 
   async function handleSaveProfile() {
-    const supabase = createClient()
-
-    const { error } = await supabase
-      .from('waitlist_users')
-      .update({
-        name: editForm.name,
-        startup_name: editForm.startup_name,
-        startup_stage: editForm.startup_stage,
-        city: editForm.city,
-        what_building: editForm.what_building || null,
-        website_url: editForm.website_url || null,
-        linkedin_url: editForm.linkedin_url || null,
+    try {
+      const response = await fetch('/api/waitlist/update-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: editForm.name,
+          startup_name: editForm.startup_name,
+          startup_stage: editForm.startup_stage,
+          city: editForm.city,
+          what_building: editForm.what_building || null,
+          website_url: editForm.website_url || null,
+          linkedin_url: editForm.linkedin_url || null,
+        }),
       })
-      .eq('id', waitlistData?.id)
 
-    if (error) {
-      toast.error('Failed to update profile')
-      return
+      const data = await response.json()
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          toast.error(`Too many update attempts. Please wait ${Math.ceil(data.retryAfter / 60)} minutes.`)
+        } else if (response.status === 400 && data.details) {
+          const firstError = data.details[0]
+          toast.error(firstError?.message || 'Validation failed')
+        } else {
+          toast.error(data.error || 'Failed to update profile')
+        }
+        return
+      }
+
+      toast.success('Profile updated!')
+      setIsSheetOpen(false)
+      fetchUserData()
+    } catch (error: any) {
+      console.error('Profile update error:', error)
+      toast.error('Failed to update profile. Please try again.')
     }
-
-    toast.success('Profile updated!')
-    setIsSheetOpen(false)
-    fetchUserData()
   }
 
   async function handleFileUpload(type: 'profile' | 'logo', file: File) {

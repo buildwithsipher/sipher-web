@@ -24,6 +24,8 @@ export interface WaitlistUser {
   updated_at: string
 }
 
+export type VisibilityMode = 'public' | 'community' | 'investor'
+
 export interface Profile {
   id: string
   waitlist_user_id?: string | null
@@ -32,6 +34,12 @@ export interface Profile {
   startup_name?: string | null
   startup_stage?: StartupStage | null
   linkedin_url?: string | null
+  builder_handle?: string | null
+  tagline?: string | null
+  profile_picture_url?: string | null
+  startup_logo_url?: string | null
+  default_visibility?: VisibilityMode
+  onboarding_done?: boolean
   created_at: string
   updated_at: string
 }

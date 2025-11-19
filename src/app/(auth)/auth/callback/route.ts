@@ -1,7 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { auditLog } from '@/lib/audit'
+import { logWarn } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
+  // Rate limiting: Max 20 OAuth callbacks per IP per hour
+  const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                   request.headers.get('x-real-ip') || 
+                   'unknown'
+  const rateLimit = checkRateLimit(`oauth-callback:${clientIp}`, 20, 60 * 60 * 1000)
+  if (!rateLimit.allowed) {
+    logWarn('OAuth callback rate limit exceeded', {
+      ip: clientIp,
+      action: 'oauth_callback_rate_limit',
+    })
+    return NextResponse.redirect(
+      new URL('/?error=too-many-requests', request.url)
+    )
+  }
+
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const error = requestUrl.searchParams.get('error')
@@ -72,6 +90,10 @@ export async function GET(request: NextRequest) {
       const user = sessionData.session.user
 
       if (user?.email) {
+        // Add artificial delay to prevent email enumeration
+        const delay = 200 + Math.random() * 100
+        await new Promise(resolve => setTimeout(resolve, delay))
+
         // Check if user is already in waitlist
         const { data: waitlistUser } = await supabase
           .from('waitlist_users')
@@ -80,11 +102,33 @@ export async function GET(request: NextRequest) {
           .single()
 
         if (waitlistUser) {
+          // Audit log OAuth login
+          auditLog('oauth_login', user.id, {
+            waitlistStatus: waitlistUser.status,
+            action: 'oauth_callback',
+          }, {
+            ip: clientIp,
+            userAgent: request.headers.get('user-agent') || undefined,
+          })
+
           // Check user status
           if (waitlistUser.status === 'approved' || waitlistUser.status === 'activated') {
-            // Approved/activated user → redirect to main dashboard
-            const dashboardUrl = new URL('/dashboard', request.url)
-            response = NextResponse.redirect(dashboardUrl)
+            // Check if onboarding is complete
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('onboarding_done')
+              .eq('id', user.id)
+              .single()
+
+            if (!profile?.onboarding_done) {
+              // Not completed onboarding → redirect to onboarding
+              const onboardingUrl = new URL('/onboarding/welcome', request.url)
+              response = NextResponse.redirect(onboardingUrl)
+            } else {
+              // Completed onboarding → redirect to main dashboard
+              const dashboardUrl = new URL('/dashboard', request.url)
+              response = NextResponse.redirect(dashboardUrl)
+            }
           } else {
             // Pending user → redirect to waitlist dashboard
             const dashboardUrl = new URL('/waitlist/dashboard', request.url)

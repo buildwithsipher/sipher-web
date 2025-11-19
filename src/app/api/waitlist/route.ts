@@ -6,21 +6,23 @@ import { EMAIL_CONFIG } from '@/lib/email/config'
 import { z } from 'zod'
 import { nanoid } from 'nanoid'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { logError, logWarn } from '@/lib/logger'
+import { logError, logWarn, logInfo } from '@/lib/logger'
+import { auditLog } from '@/lib/audit'
+import { sanitizeName, sanitizeText, sanitizeUrl, sanitizeTagline } from '@/lib/sanitize'
 
 const waitlistSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  startupName: z.string().min(1, 'Startup name is required'),
+  email: z.string().email('Invalid email address').toLowerCase().trim(),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be 100 characters or less'),
+  startupName: z.string().min(1, 'Startup name is required').max(100, 'Startup name must be 100 characters or less'),
   startupStage: z.enum(['idea', 'mvp', 'launched', 'revenue', 'scaling']),
   linkedinUrl: z.union([
-    z.string().url('Invalid LinkedIn URL'),
+    z.string().url('Invalid LinkedIn URL').max(2048, 'URL must be 2048 characters or less'),
     z.literal(''),
   ]).optional(),
-  city: z.string().min(1, 'City is required'),
-  whatBuilding: z.string().optional(),
-  websiteUrl: z.string().url('Invalid website URL').optional().or(z.literal('')),
-  referralCode: z.string().optional(),
+  city: z.string().min(1, 'City is required').max(100, 'City must be 100 characters or less'),
+  whatBuilding: z.string().max(500, 'Description must be 500 characters or less').optional(),
+  websiteUrl: z.string().url('Invalid website URL').max(2048, 'URL must be 2048 characters or less').optional().or(z.literal('')),
+  referralCode: z.string().regex(/^[A-Z0-9]{8}$/, 'Invalid referral code format').optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -54,49 +56,85 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient()
 
-    // Check if email already exists
+    // Sanitize all inputs
+    const sanitizedData = {
+      email: data.email.toLowerCase().trim(),
+      name: sanitizeName(data.name),
+      startupName: sanitizeName(data.startupName),
+      startupStage: data.startupStage,
+      linkedinUrl: data.linkedinUrl ? sanitizeUrl(data.linkedinUrl) : null,
+      city: sanitizeText(data.city, 100),
+      whatBuilding: data.whatBuilding ? sanitizeTagline(data.whatBuilding, 500) : null,
+      websiteUrl: data.websiteUrl ? sanitizeUrl(data.websiteUrl) : null,
+    }
+
+    // Check if email already exists (with artificial delay to prevent enumeration)
+    const delay = 200 + Math.random() * 100
+    await new Promise(resolve => setTimeout(resolve, delay))
+
     const { data: existing } = await supabase
       .from('waitlist_users')
       .select('id, status')
-      .eq('email', data.email)
+      .eq('email', sanitizedData.email)
       .single()
 
+    // Always return same response to prevent email enumeration
+    // If email exists, we still process but don't reveal it
     if (existing) {
-      return NextResponse.json(
-        { error: 'Email already registered' },
-        { status: 400 }
-      )
+      // Log for audit but don't reveal to user
+      auditLog('waitlist_signup_duplicate', 'unknown', {
+        email: sanitizedData.email.substring(0, 3) + '***',
+        action: 'duplicate_signup_attempt',
+      })
+      
+      // Return generic success message (don't reveal email exists)
+      return NextResponse.json({
+        success: true,
+        message: 'If this email is not registered, you will receive a confirmation email.',
+        // Don't return position or referral code
+      })
     }
 
-    // Handle referral if provided
+    // Handle referral if provided (with rate limiting)
     let referredBy: string | null = null
     if (data.referralCode) {
-      const { data: referrer } = await supabase
-        .from('waitlist_users')
-        .select('id')
-        .eq('referral_code', data.referralCode)
-        .single()
+      // Rate limit referral code checks
+      const referralRateLimit = checkRateLimit(`referral-check:${clientIp}`, 20, 60 * 60 * 1000)
+      if (!referralRateLimit.allowed) {
+        logWarn('Referral code check rate limit exceeded', {
+          ip: clientIp,
+          action: 'referral_check_rate_limit',
+        })
+        // Continue without referral (don't fail signup)
+      } else {
+        const { data: referrer } = await supabase
+          .from('waitlist_users')
+          .select('id')
+          .eq('referral_code', data.referralCode.toUpperCase())
+          .single()
 
-      if (referrer) {
-        referredBy = referrer.id
+        if (referrer) {
+          referredBy = referrer.id
+        }
+        // Don't reveal if referral code is invalid (prevent enumeration)
       }
     }
 
     // Generate referral code
     const referralCode = nanoid(8).toUpperCase()
 
-    // Insert into waitlist
+    // Insert into waitlist with sanitized data
     const { data: newUser, error: insertError } = await supabase
       .from('waitlist_users')
       .insert({
-        email: data.email,
-        name: data.name,
-        startup_name: data.startupName,
-        startup_stage: data.startupStage,
-        linkedin_url: data.linkedinUrl && data.linkedinUrl.trim() ? data.linkedinUrl.trim() : null,
-        city: data.city,
-        what_building: data.whatBuilding || null,
-        website_url: data.websiteUrl && data.websiteUrl.trim() ? data.websiteUrl.trim() : null,
+        email: sanitizedData.email,
+        name: sanitizedData.name,
+        startup_name: sanitizedData.startupName,
+        startup_stage: sanitizedData.startupStage,
+        linkedin_url: sanitizedData.linkedinUrl,
+        city: sanitizedData.city,
+        what_building: sanitizedData.whatBuilding,
+        website_url: sanitizedData.websiteUrl,
         referred_by: referredBy,
         referral_code: referralCode,
         status: 'pending',
@@ -106,14 +144,25 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       logError('Failed to insert waitlist user', insertError, {
-        email: data.email,
+        email: sanitizedData.email.substring(0, 3) + '***',
         action: 'waitlist_signup',
       })
+      // Generic error (don't reveal details)
       return NextResponse.json(
-        { error: 'Failed to join waitlist' },
+        { error: 'Something went wrong. Please try again later.' },
         { status: 500 }
       )
     }
+
+    // Audit log successful signup
+    auditLog('waitlist_signup', 'unknown', {
+      userId: newUser.id,
+      hasReferral: !!referredBy,
+      action: 'waitlist_signup_success',
+    }, {
+      ip: clientIp,
+      userAgent: request.headers.get('user-agent') || undefined,
+    })
 
     // Get position in waitlist
     const { count } = await supabase
