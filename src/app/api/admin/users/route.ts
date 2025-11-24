@@ -46,7 +46,8 @@ export async function GET(request: NextRequest) {
     // Get total count
     let countQuery = supabase
       .from('waitlist_users')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
+      .limit(1)
 
     if (status !== 'all') {
       countQuery = countQuery.eq('status', status)

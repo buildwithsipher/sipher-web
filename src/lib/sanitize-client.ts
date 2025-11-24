@@ -70,3 +70,29 @@ export function sanitizeTagline(tagline: string, maxLength: number = 200): strin
   return sanitizeText(tagline, maxLength)
 }
 
+/**
+ * Sanitize URL (validates and sanitizes)
+ */
+export function sanitizeUrl(url: string): string | null {
+  if (!url) return null
+  
+  try {
+    const parsed = new URL(url)
+    
+    // Only allow http/https
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null
+    }
+    
+    // Limit length
+    if (url.length > 2048) {
+      return null
+    }
+    
+    return url.trim()
+  } catch {
+    // If URL parsing fails, return null
+    return null
+  }
+}
+

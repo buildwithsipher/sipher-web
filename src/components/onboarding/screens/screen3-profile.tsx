@@ -2,14 +2,21 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowRight, ArrowLeft, Upload, Edit2 } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Upload, Edit2, Linkedin, Link as LinkIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { SkipButton } from '../enhancements/skip-button'
 import { MagneticButton } from '../enhancements/magnetic-button'
 import { RippleEffect } from '../enhancements/ripple-effect'
 import { triggerHaptic } from '../enhancements/haptic-feedback'
-import { sanitizeName, sanitizeTagline, sanitizeText } from '@/lib/sanitize-client'
+import { sanitizeName, sanitizeTagline, sanitizeText, sanitizeUrl } from '@/lib/sanitize-client'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 interface Screen3Props {
   onNext: () => void
@@ -140,6 +147,32 @@ export function OnboardingScreen3({ onNext, onBack, onSkip, formData, setFormDat
                   <p className="text-white italic">{sanitizeTagline(localData.tagline)}</p>
                 </div>
               )}
+              {localData.linkedinUrl && (
+                <div>
+                  <p className="text-xs text-white/40 mb-1">LinkedIn</p>
+                  <a 
+                    href={localData.linkedinUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-[#7B5CFF] hover:text-[#9B7CFF] text-sm break-all"
+                  >
+                    {localData.linkedinUrl}
+                  </a>
+                </div>
+              )}
+              {localData.websiteUrl && (
+                <div>
+                  <p className="text-xs text-white/40 mb-1">Website</p>
+                  <a 
+                    href={localData.websiteUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-[#7B5CFF] hover:text-[#9B7CFF] text-sm break-all"
+                  >
+                    {localData.websiteUrl}
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
@@ -157,30 +190,179 @@ export function OnboardingScreen3({ onNext, onBack, onSkip, formData, setFormDat
           </div>
 
           <div className="glass-card rounded-2xl p-6 space-y-4">
-            {[
-              { key: 'name', label: 'Full Name', value: localData.name, maxLength: 100, sanitize: sanitizeName },
-              { key: 'startupName', label: 'Startup Name', value: localData.startupName, maxLength: 100, sanitize: sanitizeName },
-              { key: 'startupStage', label: 'Stage', value: localData.startupStage, maxLength: 50, sanitize: sanitizeText },
-              { key: 'city', label: 'City', value: localData.city, maxLength: 100, sanitize: sanitizeText },
-              { key: 'tagline', label: 'Tagline', value: localData.tagline, maxLength: 200, sanitize: sanitizeTagline },
-            ].map((field) => (
-              <div key={field.key} className="flex items-center gap-3">
+            {/* Full Name */}
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                value={localData.name || ''}
+                onChange={(e) => {
+                  const sanitized = sanitizeName(e.target.value)
+                  setLocalData({ ...localData, name: sanitized })
+                }}
+                placeholder="Full Name"
+                maxLength={100}
+                autoComplete="name"
+                inputMode="text"
+                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-[#7B5CFF]/50 focus:ring-2 focus:ring-[#7B5CFF]/20 transition-all min-h-[44px] text-base"
+              />
+              <Edit2 className="w-4 h-4 text-white/40 flex-shrink-0" />
+            </div>
+
+            {/* Startup Name */}
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                value={localData.startupName || ''}
+                onChange={(e) => {
+                  const sanitized = sanitizeName(e.target.value)
+                  setLocalData({ ...localData, startupName: sanitized })
+                }}
+                placeholder="Startup Name"
+                maxLength={100}
+                autoComplete="organization"
+                inputMode="text"
+                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-[#7B5CFF]/50 focus:ring-2 focus:ring-[#7B5CFF]/20 transition-all min-h-[44px] text-base"
+              />
+              <Edit2 className="w-4 h-4 text-white/40 flex-shrink-0" />
+            </div>
+
+            {/* Startup Stage - Dropdown */}
+            <div className="flex items-center gap-3">
+              <Select
+                value={localData.startupStage || ''}
+                onValueChange={(value) => {
+                  setLocalData({ ...localData, startupStage: value })
+                }}
+              >
+                <SelectTrigger className="flex-1 min-h-[44px] bg-white/10 border-white/20 text-white focus:ring-2 focus:ring-[#7B5CFF]/20">
+                  <SelectValue placeholder="Startup Stage" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1a1a] border-white/10">
+                  <SelectItem value="idea" className="text-white focus:bg-white/10">Idea</SelectItem>
+                  <SelectItem value="mvp" className="text-white focus:bg-white/10">MVP</SelectItem>
+                  <SelectItem value="launched" className="text-white focus:bg-white/10">Live Product</SelectItem>
+                  <SelectItem value="revenue" className="text-white focus:bg-white/10">Revenue</SelectItem>
+                  <SelectItem value="scaling" className="text-white focus:bg-white/10">Scaling</SelectItem>
+                </SelectContent>
+              </Select>
+              <Edit2 className="w-4 h-4 text-white/40 flex-shrink-0" />
+            </div>
+
+            {/* City */}
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                value={localData.city || ''}
+                onChange={(e) => {
+                  const sanitized = sanitizeText(e.target.value, 100)
+                  setLocalData({ ...localData, city: sanitized })
+                }}
+                placeholder="City"
+                maxLength={100}
+                autoComplete="address-level2"
+                inputMode="text"
+                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-[#7B5CFF]/50 focus:ring-2 focus:ring-[#7B5CFF]/20 transition-all min-h-[44px] text-base"
+              />
+              <Edit2 className="w-4 h-4 text-white/40 flex-shrink-0" />
+            </div>
+
+            {/* Tagline */}
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                value={localData.tagline || ''}
+                onChange={(e) => {
+                  const sanitized = sanitizeTagline(e.target.value)
+                  setLocalData({ ...localData, tagline: sanitized })
+                }}
+                placeholder="Tagline (Optional)"
+                maxLength={200}
+                inputMode="text"
+                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-[#7B5CFF]/50 focus:ring-2 focus:ring-[#7B5CFF]/20 transition-all min-h-[44px] text-base"
+              />
+              <Edit2 className="w-4 h-4 text-white/40 flex-shrink-0" />
+            </div>
+
+            {/* Optional URL Fields */}
+            <div className="pt-2 space-y-3 border-t border-white/10">
+              <p className="text-sm text-white/60 mb-2">Links (Optional):</p>
+              
+              <div className="flex items-center gap-3">
+                <Linkedin className="w-4 h-4 text-white/40 flex-shrink-0" />
                 <input
                   type="text"
-                  value={field.value || ''}
+                  value={localData.linkedinUrl || ''}
                   onChange={(e) => {
-                    const sanitized = field.sanitize 
-                      ? field.sanitize(e.target.value, field.maxLength)
-                      : e.target.value
-                    setLocalData({ ...localData, [field.key]: sanitized })
+                    setLocalData({ ...localData, linkedinUrl: e.target.value.trim() })
                   }}
-                  placeholder={field.label}
-                  maxLength={field.maxLength}
-                  className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#7B5CFF]/50 focus:ring-2 focus:ring-[#7B5CFF]/20 transition-all min-h-[44px]"
+                  onBlur={(e) => {
+                    const url = e.target.value.trim()
+                    if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+                      // Auto-add https:// if missing
+                      const sanitized = sanitizeUrl(`https://${url}`) || url
+                      setLocalData({ ...localData, linkedinUrl: sanitized || url })
+                    } else if (url) {
+                      const sanitized = sanitizeUrl(url) || url
+                      setLocalData({ ...localData, linkedinUrl: sanitized || url })
+                    }
+                  }}
+                  placeholder="linkedin.com/in/yourprofile"
+                  autoComplete="url"
+                  inputMode="url"
+                  className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-[#7B5CFF]/50 focus:ring-2 focus:ring-[#7B5CFF]/20 transition-all min-h-[44px] text-base"
                 />
-                <Edit2 className="w-4 h-4 text-white/40" />
+                {localData.linkedinUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setLocalData({ ...localData, linkedinUrl: '' })}
+                    className="text-white/40 hover:text-white/60 transition-colors p-1 flex-shrink-0"
+                    aria-label="Clear LinkedIn URL"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
-            ))}
+
+              <div className="flex items-center gap-3">
+                <LinkIcon className="w-4 h-4 text-white/40 flex-shrink-0" />
+                <input
+                  type="text"
+                  value={localData.websiteUrl || ''}
+                  onChange={(e) => {
+                    setLocalData({ ...localData, websiteUrl: e.target.value.trim() })
+                  }}
+                  onBlur={(e) => {
+                    const url = e.target.value.trim()
+                    if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+                      // Auto-add https:// if missing
+                      const sanitized = sanitizeUrl(`https://${url}`) || url
+                      setLocalData({ ...localData, websiteUrl: sanitized || url })
+                    } else if (url) {
+                      const sanitized = sanitizeUrl(url) || url
+                      setLocalData({ ...localData, websiteUrl: sanitized || url })
+                    }
+                  }}
+                  placeholder="yourproduct.com"
+                  autoComplete="url"
+                  inputMode="url"
+                  className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-[#7B5CFF]/50 focus:ring-2 focus:ring-[#7B5CFF]/20 transition-all min-h-[44px] text-base"
+                />
+                {localData.websiteUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setLocalData({ ...localData, websiteUrl: '' })}
+                    className="text-white/40 hover:text-white/60 transition-colors p-1 flex-shrink-0"
+                    aria-label="Clear Website URL"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
 
             {/* Optional Uploads */}
             <div className="pt-4 border-t border-white/10 space-y-3">

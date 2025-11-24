@@ -18,12 +18,20 @@ export async function GET(request: NextRequest) {
     const supabase = createAdminClient();
     const { count, error } = await supabase
       .from('waitlist_users')
-      .select('*', { count: 'exact', head: true });
+      .select('id', { count: 'exact' })
+      .limit(1);
 
     if (error) {
       logError('Failed to fetch waitlist count', error, {
         action: 'fetch_count',
       });
+      if (cachedCount) {
+        // Serve stale data instead of total failure
+        return NextResponse.json(
+          { count: cachedCount.count, stale: true },
+          { status: 200 }
+        );
+      }
       return NextResponse.json({ error: 'Failed to fetch waitlist count' }, { status: 500 });
     }
 

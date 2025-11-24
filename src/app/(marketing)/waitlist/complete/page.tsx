@@ -225,7 +225,9 @@ export default function WaitlistCompletePage() {
                 placeholder="Your full name"
                 disabled={loading}
                 required
-                className="mt-2"
+                autoComplete="name"
+                inputMode="text"
+                className="mt-2 bg-white/10 border-white/20 min-h-[44px] text-base"
               />
             </div>
 
@@ -244,7 +246,9 @@ export default function WaitlistCompletePage() {
                 placeholder="e.g., Sipher"
                 disabled={loading}
                 required
-                className="mt-2"
+                autoComplete="organization"
+                inputMode="text"
+                className="mt-2 bg-white/10 border-white/20 min-h-[44px] text-base"
               />
             </div>
 
@@ -289,7 +293,9 @@ export default function WaitlistCompletePage() {
                 placeholder="e.g., Bangalore"
                 disabled={loading}
                 required
-                className="mt-2"
+                autoComplete="address-level2"
+                inputMode="text"
+                className="mt-2 bg-white/10 border-white/20 min-h-[44px] text-base"
               />
             </div>
 
@@ -301,14 +307,16 @@ export default function WaitlistCompletePage() {
               </Label>
               <Input
                 id="linkedinUrl"
-                type="url"
+                type="text"
                 value={formData.linkedinUrl}
                 onChange={(e) =>
                   setFormData({ ...formData, linkedinUrl: e.target.value })
                 }
-                placeholder="https://linkedin.com/in/yourprofile"
+                placeholder="linkedin.com/in/yourprofile"
                 disabled={loading}
-                className="mt-2"
+                autoComplete="url"
+                inputMode="url"
+                className="mt-2 bg-white/10 border-white/20 min-h-[44px] text-base"
               />
             </div>
 
@@ -326,7 +334,9 @@ export default function WaitlistCompletePage() {
                 }
                 placeholder="One-liner about your startup"
                 disabled={loading}
-                className="mt-2"
+                inputMode="text"
+                maxLength={500}
+                className="mt-2 bg-white/10 border-white/20 min-h-[44px] text-base"
               />
             </div>
 
@@ -338,14 +348,16 @@ export default function WaitlistCompletePage() {
               </Label>
               <Input
                 id="websiteUrl"
-                type="url"
+                type="text"
                 value={formData.websiteUrl}
                 onChange={(e) =>
                   setFormData({ ...formData, websiteUrl: e.target.value })
                 }
-                placeholder="https://yourproduct.com"
+                placeholder="yourproduct.com"
                 disabled={loading}
-                className="mt-2"
+                autoComplete="url"
+                inputMode="url"
+                className="mt-2 bg-white/10 border-white/20 min-h-[44px] text-base"
               />
             </div>
 

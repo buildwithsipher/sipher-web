@@ -182,7 +182,8 @@ export default function WaitlistDashboard() {
     // Get total count
     const { count } = await supabase
       .from('waitlist_users')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
+      .limit(1)
 
     setTotalUsers(count || 0)
   }
@@ -211,7 +212,8 @@ export default function WaitlistDashboard() {
 
     const { count, error: countError } = await supabase
       .from('waitlist_users')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
+      .limit(1)
 
     if (countError) {
       console.error('Community stats error:', countError)

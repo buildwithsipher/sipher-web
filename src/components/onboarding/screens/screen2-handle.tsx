@@ -150,7 +150,12 @@ export function OnboardingScreen2({ onNext, onBack, formData, setFormData }: Scr
                 }}
                 placeholder="srideep"
                 maxLength={20}
-                className="w-full pl-8 pr-12 py-4 bg-white/5 border border-white/10 rounded-xl text-white text-lg focus:outline-none focus:border-[#7B5CFF]/50 focus:ring-2 focus:ring-[#7B5CFF]/20 transition-all min-h-[44px]"
+                autoComplete="username"
+                inputMode="text"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
+                className="w-full pl-8 pr-12 py-4 bg-white/10 border border-white/20 rounded-xl text-white text-lg placeholder:text-white/40 focus:outline-none focus:border-[#7B5CFF]/50 focus:ring-2 focus:ring-[#7B5CFF]/20 transition-all min-h-[44px]"
                 aria-label="Choose your builder handle"
                 aria-describedby="handle-help"
               />

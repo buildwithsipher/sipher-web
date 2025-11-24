@@ -54,7 +54,8 @@ export async function GET(request: NextRequest) {
     const adminSupabase = createAdminClient()
     const { count: usersBeforeMeCount, error: countError } = await adminSupabase
       .from('waitlist_users')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
+      .limit(1)
       .lt('created_at', waitlistUser.created_at)
 
     if (countError) {

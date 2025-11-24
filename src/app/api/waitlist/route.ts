@@ -165,9 +165,16 @@ export async function POST(request: NextRequest) {
     })
 
     // Get position in waitlist
-    const { count } = await supabase
+    const { count, error: countError } = await supabase
       .from('waitlist_users')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
+      .limit(1)
+
+    if (countError) {
+      logWarn('Failed to fetch waitlist count for confirmation email', {
+        action: 'waitlist_signup_count',
+      })
+    }
 
     const actualPosition = count || 0
     // Add 100 for "fake it till we make it" - same as dashboard
