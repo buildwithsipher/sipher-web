@@ -9,6 +9,7 @@ interface Particle {
   y: number
   angle: number
   distance: number
+  colorIndex: number
 }
 
 interface ParticleBurstProps {
@@ -29,15 +30,25 @@ export function ParticleBurst({
   useEffect(() => {
     if (!trigger) return
 
+    // Generate random values once per trigger using useMemo pattern
+    const randomValues = Array.from({ length: count }, () => ({
+      distance: 50 + Math.random() * 30,
+      colorIndex: Math.floor(Math.random() * colors.length),
+    }))
+
     const newParticles: Particle[] = Array.from({ length: count }, (_, i) => ({
       id: i,
       x: 50, // Center X percentage
       y: 50, // Center Y percentage
       angle: (360 / count) * i,
-      distance: 50 + Math.random() * 30,
+      distance: randomValues[i].distance,
+      colorIndex: randomValues[i].colorIndex,
     }))
 
-    setParticles(newParticles)
+    // Use requestAnimationFrame to avoid synchronous setState in effect
+    const rafId = requestAnimationFrame(() => {
+      setParticles(newParticles)
+    })
 
     // Cleanup after animation
     const timer = setTimeout(() => {
@@ -45,18 +56,21 @@ export function ParticleBurst({
       onComplete?.()
     }, 1600)
 
-    return () => clearTimeout(timer)
-  }, [trigger, count, onComplete])
+    return () => {
+      cancelAnimationFrame(rafId)
+      clearTimeout(timer)
+    }
+  }, [trigger, count, colors.length, onComplete])
 
   if (particles.length === 0) return null
 
   return (
     <div className="fixed inset-0 pointer-events-none z-50">
-      {particles.map((particle) => {
+      {particles.map(particle => {
         const radians = (particle.angle * Math.PI) / 180
         const endX = particle.x + Math.cos(radians) * particle.distance
         const endY = particle.y + Math.sin(radians) * particle.distance
-        const color = colors[Math.floor(Math.random() * colors.length)]
+        const color = colors[particle.colorIndex]
 
         return (
           <motion.div
@@ -84,4 +98,3 @@ export function ParticleBurst({
     </div>
   )
 }
-
