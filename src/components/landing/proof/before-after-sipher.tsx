@@ -1,16 +1,13 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion'
 
 export default function BeforeAfterSipher() {
   return (
     <section className="mt-24 max-w-5xl mx-auto px-4 sm:px-6">
-
       {/* HEADER */}
       <div className="text-center mb-12">
-        <h3 className="text-3xl md:text-4xl font-bold text-white">
-          Before → After Sipher
-        </h3>
+        <h3 className="text-3xl md:text-4xl font-bold text-white">Before → After Sipher</h3>
         <p className="mt-3 text-muted-foreground max-w-md mx-auto">
           Same execution. Different visibility. Completely different outcomes.
         </p>
@@ -18,7 +15,6 @@ export default function BeforeAfterSipher() {
 
       {/* GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
         {/* BEFORE */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -66,15 +62,12 @@ export default function BeforeAfterSipher() {
             <li>• Opportunities come inbound</li>
           </ul>
         </motion.div>
-
       </div>
 
       {/* FOOTER TEXT */}
       <p className="text-xs text-muted-foreground text-center mt-6">
         This is a preview of how visibility transforms a founder's journey.
       </p>
-
     </section>
-  );
+  )
 }
-

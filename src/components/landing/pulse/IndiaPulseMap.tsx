@@ -1,25 +1,25 @@
-"use client";
+'use client'
 
-import { useState, useCallback, memo } from "react";
-import IndiaMapSVG from "./IndiaMapSVG";
-import HeatMapGradient from "./HeatMapGradient";
-import AmbientEnergyWaves from "./AmbientEnergyWaves";
-import ExecutionActivityLabels from "./ExecutionActivityLabels";
-import ActivityStream from "./ActivityStream";
-import { useScrollDetection } from "./useScrollDetection";
-import { SharedInViewProvider } from "./useSharedInView";
-import SipherAsterisk from "@/components/ui/SipherAsterisk";
+import { useState, useCallback, memo } from 'react'
+import IndiaMapSVG from './IndiaMapSVG'
+import HeatMapGradient from './HeatMapGradient'
+import AmbientEnergyWaves from './AmbientEnergyWaves'
+import ExecutionActivityLabels from './ExecutionActivityLabels'
+import ActivityStream from './ActivityStream'
+import { useScrollDetection } from './useScrollDetection'
+import { SharedInViewProvider } from './useSharedInView'
+import SipherAsterisk from '@/components/ui/SipherAsterisk'
 
 function IndiaPulseMapContent() {
-  const [isHovered, setIsHovered] = useState(false);
-  const isScrolling = useScrollDetection(); // Detect scroll for performance optimization
+  const [isHovered, setIsHovered] = useState(false)
+  const isScrolling = useScrollDetection() // Detect scroll for performance optimization
 
   // Memoize hover handlers to prevent re-renders
-  const handleMouseEnter = useCallback(() => setIsHovered(true), []);
-  const handleMouseLeave = useCallback(() => setIsHovered(false), []);
+  const handleMouseEnter = useCallback(() => setIsHovered(true), [])
+  const handleMouseLeave = useCallback(() => setIsHovered(false), [])
 
   return (
-      <section 
+    <section
       className="py-20 md:py-32 relative bg-noir"
       style={{
         contain: 'layout style paint', // Scroll containment for better performance
@@ -41,9 +41,9 @@ function IndiaPulseMapContent() {
       </div>
 
       {/* MAP CONTAINER - More prominent, better integrated */}
-      <div 
-        className="relative w-full max-w-5xl mx-auto px-4 sm:px-6" 
-        style={{ 
+      <div
+        className="relative w-full max-w-5xl mx-auto px-4 sm:px-6"
+        style={{
           aspectRatio: '5/6',
           contain: 'layout style paint', // Scroll containment
           transform: 'translate3d(0, 0, 0)', // GPU compositing layer
@@ -55,26 +55,26 @@ function IndiaPulseMapContent() {
       >
         {/* Layer 1: Map outline */}
         <IndiaMapSVG isHovered={isHovered} isScrolling={isScrolling} />
-        
+
         {/* Layer 2: Heat map gradient (base layer - subtle activity concentration) */}
         <HeatMapGradient isHovered={isHovered} isScrolling={isScrolling} />
-        
+
         {/* Layer 3: Ambient energy waves (smooth pulsing animations) */}
         <AmbientEnergyWaves isHovered={isHovered} isScrolling={isScrolling} />
-        
+
         {/* Layer 4: Execution activity labels (Sipher-specific metrics) */}
         <ExecutionActivityLabels isHovered={isHovered} isScrolling={isScrolling} />
-        
+
         {/* Layer 5: Activity stream (founder-centric text) */}
         <ActivityStream isHovered={isHovered} isScrolling={isScrolling} />
-        
+
         {/* Layer 6: Ambient asterisk signature (bottom-left corner, soft) */}
         {!isScrolling && (
           <div className="absolute bottom-8 left-8 pointer-events-none">
-            <SipherAsterisk 
-              size={16} 
-              color="#06b6d4" 
-              className="sipher-ast-life sipher-ast-noir opacity-40" 
+            <SipherAsterisk
+              size={16}
+              color="#06b6d4"
+              className="sipher-ast-life sipher-ast-noir opacity-40"
               animated={false}
               ariaHidden={true}
             />
@@ -82,7 +82,7 @@ function IndiaPulseMapContent() {
         )}
       </div>
     </section>
-  );
+  )
 }
 
 function IndiaPulseMap() {
@@ -91,8 +91,8 @@ function IndiaPulseMap() {
     <SharedInViewProvider>
       <IndiaPulseMapContent />
     </SharedInViewProvider>
-  );
+  )
 }
 
 // Memoize component to prevent unnecessary re-renders
-export default memo(IndiaPulseMap);
+export default memo(IndiaPulseMap)

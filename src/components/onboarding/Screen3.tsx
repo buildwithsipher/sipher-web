@@ -84,10 +84,10 @@ export function OnboardingScreen3({ onNext, onBack, stage, setStage }: Screen3Pr
           transition={{ duration: 0.4, delay: 0.1 }}
           className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
-          {STAGES.map((item) => {
+          {STAGES.map(item => {
             const Icon = item.icon
             const isSelected = stage === item.id
-            
+
             return (
               <motion.button
                 key={item.id}
@@ -101,22 +101,18 @@ export function OnboardingScreen3({ onNext, onBack, stage, setStage }: Screen3Pr
                 }`}
               >
                 <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-xl ${
-                    isSelected ? 'bg-white/10' : 'bg-white/5'
-                  }`}>
-                    <Icon className={`w-6 h-6 ${
-                      isSelected ? 'text-white' : 'text-white/60'
-                    }`} />
+                  <div className={`p-3 rounded-xl ${isSelected ? 'bg-white/10' : 'bg-white/5'}`}>
+                    <Icon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-white/60'}`} />
                   </div>
                   <div className="flex-1">
-                    <h3 className={`text-lg font-medium mb-1 ${
-                      isSelected ? 'text-white' : 'text-white/90'
-                    }`}>
+                    <h3
+                      className={`text-lg font-medium mb-1 ${
+                        isSelected ? 'text-white' : 'text-white/90'
+                      }`}
+                    >
                       {item.label}
                     </h3>
-                    <p className={`text-sm ${
-                      isSelected ? 'text-white/70' : 'text-white/50'
-                    }`}>
+                    <p className={`text-sm ${isSelected ? 'text-white/70' : 'text-white/50'}`}>
                       {item.description}
                     </p>
                   </div>
@@ -166,4 +162,3 @@ export function OnboardingScreen3({ onNext, onBack, stage, setStage }: Screen3Pr
     </motion.div>
   )
 }
-

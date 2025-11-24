@@ -4,12 +4,12 @@ import React, { useState, useEffect, useRef, memo, Suspense } from 'react'
 import { motion, useInView, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { 
-  ArrowRight, 
-  CheckCircle2, 
-  Code2, 
-  TrendingUp, 
-  Users, 
+import {
+  ArrowRight,
+  CheckCircle2,
+  Code2,
+  TrendingUp,
+  Users,
   Zap,
   MapPin,
   Calendar,
@@ -42,7 +42,7 @@ import {
   TrendingDown,
   Mail,
   Phone,
-  ArrowLeftRight
+  ArrowLeftRight,
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { Hero } from '@/components/landing/hero'
@@ -88,17 +88,25 @@ import { BentoShowcase } from '@/components/landing/bento-showcase'
 import { NextSectionButton } from '@/components/landing/NextSectionButton'
 
 // Animated Counter Component
-const AnimatedCounter = memo(function AnimatedCounter({ target, duration = 2, suffix = '' }: { target: number; duration?: number; suffix?: string }) {
+const AnimatedCounter = memo(function AnimatedCounter({
+  target,
+  duration = 2,
+  suffix = '',
+}: {
+  target: number
+  duration?: number
+  suffix?: string
+}) {
   const [count, setCount] = useState(0)
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true })
 
   useEffect(() => {
     if (!isInView) return
-    
+
     let start = 0
     const increment = target / (duration * 60)
-    
+
     const timer = setInterval(() => {
       start += increment
       if (start >= target) {
@@ -112,7 +120,12 @@ const AnimatedCounter = memo(function AnimatedCounter({ target, duration = 2, su
     return () => clearInterval(timer)
   }, [isInView, target, duration])
 
-  return <span ref={ref}>{count.toLocaleString('en-US')}{suffix}</span>
+  return (
+    <span ref={ref}>
+      {count.toLocaleString('en-US')}
+      {suffix}
+    </span>
+  )
 })
 
 // Interactive Tab Navigation
@@ -120,24 +133,24 @@ type TabType = 'problem' | 'solution' | 'playground' | 'proof' | 'pulse' | 'road
 
 function LandingPageContent() {
   const { waitlistModalOpen, setWaitlistModalOpen, activeTab, setActiveTab } = useUIStore()
-  const [localActiveTab, setLocalActiveTab] = useState<TabType>(activeTab as TabType || 'problem')
+  const [localActiveTab, setLocalActiveTab] = useState<TabType>((activeTab as TabType) || 'problem')
   const [waitlistCount, setWaitlistCount] = useState(0)
   const searchParams = useSearchParams()
   const router = useRouter()
-  
+
   // Sync local state with store
   useEffect(() => {
-    setLocalActiveTab(activeTab as TabType || 'problem')
+    setLocalActiveTab((activeTab as TabType) || 'problem')
   }, [activeTab])
 
   // Handle error messages from URL params
   useEffect(() => {
     const error = searchParams.get('error')
     const message = searchParams.get('message')
-    
+
     if (error && message) {
       const decodedMessage = decodeURIComponent(message)
-      
+
       // Show error toast
       if (error === 'database-error') {
         toast.error(decodedMessage, {
@@ -153,7 +166,7 @@ function LandingPageContent() {
           duration: 5000,
         })
       }
-      
+
       // Clear error from URL
       const newUrl = new URL(window.location.href)
       newUrl.searchParams.delete('error')
@@ -161,11 +174,11 @@ function LandingPageContent() {
       router.replace(newUrl.pathname + newUrl.search, { scroll: false })
     }
   }, [searchParams, router])
-  
+
   const handleTabSwitch = (tabId: TabType) => {
     setLocalActiveTab(tabId)
     setActiveTab(tabId)
-    
+
     // Track section view
     import('@/lib/analytics/posthog').then(({ trackSectionView }) => {
       trackSectionView(tabId)
@@ -180,29 +193,63 @@ function LandingPageContent() {
     minutes: 0,
     seconds: 0,
   })
-  
+
   // Map dots state
-  const [mapDots, setMapDots] = useState<Array<{ left: number; top: number; duration: number; delay: number }>>([])
-  
+  const [mapDots, setMapDots] = useState<
+    Array<{ left: number; top: number; duration: number; delay: number }>
+  >([])
+
   // ProofCard Calculator state
   const [commits, setCommits] = useState(0)
   const [features, setFeatures] = useState(0)
   const [activeDays, setActiveDays] = useState(0)
-  
+
   // Interactive playground state
-  const [playgroundEntries, setPlaygroundEntries] = useState<Array<{ id: string; text: string; date: Date; score: number }>>([])
+  const [playgroundEntries, setPlaygroundEntries] = useState<
+    Array<{ id: string; text: string; date: Date; score: number }>
+  >([])
   const [currentEntry, setCurrentEntry] = useState('')
-  
+
   // Track explored sections for navigation feedback
   const [exploredSections, setExploredSections] = useState<Set<TabType>>(new Set(['problem']))
-  
+
   // Live activity state
   const [liveActivity] = useState([
-    { name: 'Rahul K.', location: 'Pune', action: ' joined the waitlist', time: 'Just now', score: null },
-    { name: 'Sneha M.', location: 'Bangalore', action: ' calculated ProofCard: 87', time: '2 min ago', score: 87 },
-    { name: 'Arvind S.', location: 'Delhi', action: ' joined the waitlist', time: '5 min ago', score: null },
-    { name: 'Meera P.', location: 'Mumbai', action: ' calculated ProofCard: 92', time: '8 min ago', score: 92 },
-    { name: 'Kiran R.', location: 'Hyderabad', action: ' joined the waitlist', time: '12 min ago', score: null },
+    {
+      name: 'Rahul K.',
+      location: 'Pune',
+      action: ' joined the waitlist',
+      time: 'Just now',
+      score: null,
+    },
+    {
+      name: 'Sneha M.',
+      location: 'Bangalore',
+      action: ' calculated ProofCard: 87',
+      time: '2 min ago',
+      score: 87,
+    },
+    {
+      name: 'Arvind S.',
+      location: 'Delhi',
+      action: ' joined the waitlist',
+      time: '5 min ago',
+      score: null,
+    },
+    {
+      name: 'Meera P.',
+      location: 'Mumbai',
+      action: ' calculated ProofCard: 92',
+      time: '8 min ago',
+      score: 92,
+    },
+    {
+      name: 'Kiran R.',
+      location: 'Hyderabad',
+      action: ' joined the waitlist',
+      time: '12 min ago',
+      score: null,
+    },
   ])
 
   // Fetch waitlist count
@@ -218,7 +265,7 @@ function LandingPageContent() {
         console.error('Failed to fetch waitlist count:', error)
       }
     }
-    
+
     fetchCount()
     // Update every 60 seconds
     const interval = setInterval(fetchCount, 60000)
@@ -236,7 +283,7 @@ function LandingPageContent() {
   const calculateScore = () => {
     const consistency = Math.min(100, (activeDays / 30) * 100)
     const velocity = Math.min(100, (commits / 50) * 50 + (features / 10) * 50)
-    const total = Math.round((consistency * 0.4) + (velocity * 0.6))
+    const total = Math.round(consistency * 0.4 + velocity * 0.6)
     return Math.min(100, total)
   }
 
@@ -248,20 +295,20 @@ function LandingPageContent() {
       const daysAgo = (Date.now() - e.date.getTime()) / (1000 * 60 * 60 * 24)
       return daysAgo <= 7
     }).length
-    return Math.round((consistency * 0.6) + (recentEntries * 5))
+    return Math.round(consistency * 0.6 + recentEntries * 5)
   }
 
   // Add playground entry
   const addPlaygroundEntry = () => {
     if (!currentEntry.trim()) return
-    
+
     const newEntry = {
       id: Date.now().toString(),
       text: currentEntry,
       date: new Date(),
-      score: Math.floor(Math.random() * 20) + 5
+      score: Math.floor(Math.random() * 20) + 5,
     }
-    
+
     setPlaygroundEntries(prev => [newEntry, ...prev].slice(0, 30))
     setCurrentEntry('')
   }
@@ -301,7 +348,7 @@ function LandingPageContent() {
     const handleOpenWaitlist = () => {
       setWaitlistModalOpen(true)
     }
-    
+
     window.addEventListener('openWaitlist', handleOpenWaitlist)
     return () => {
       window.removeEventListener('openWaitlist', handleOpenWaitlist)
@@ -317,7 +364,7 @@ function LandingPageContent() {
         handleTabSwitch(customEvent.detail.tabId)
       }
     }
-    
+
     window.addEventListener('switchTab', handleSwitchTab as EventListener)
     return () => {
       window.removeEventListener('switchTab', handleSwitchTab as EventListener)
@@ -338,24 +385,24 @@ function LandingPageContent() {
 
   const { scrollY } = useScroll()
   const contentRef = useRef<HTMLDivElement>(null)
-  
+
   // Calculate scroll progress for pulse line
   const scrollProgress = useTransform(
     scrollY,
     [0, typeof window !== 'undefined' ? window.innerHeight * 2 : 1000],
     [0, 100]
   )
-  
+
   // Transform scroll progress to line width
-  const lineWidth = useTransform(scrollProgress, (value) => `${20 + (value * 0.8)}%`)
-  
+  const lineWidth = useTransform(scrollProgress, value => `${20 + value * 0.8}%`)
+
   // Calculate active tab position for pulse line node
   const activeTabIndex = tabs.findIndex(tab => tab.id === activeTab)
   const activeTabPosition = tabs.length > 0 ? (activeTabIndex / (tabs.length - 1)) * 100 : 0
-  
+
   // Track tab switch animation
   const [isSwitchingTabs, setIsSwitchingTabs] = useState(false)
-  
+
   // Handle tab switch with pulse line animation
   const handleTabSwitchWithAnimation = (tabId: TabType) => {
     setIsSwitchingTabs(true)
@@ -499,7 +546,9 @@ function LandingPageContent() {
         >
           <div className="container mx-auto flex items-center justify-between gap-4">
             <div className="flex-1">
-              <p className="text-sm font-semibold">Join <AnimatedCounter target={waitlistCount + 100} suffix="+" /> founders</p>
+              <p className="text-sm font-semibold">
+                Join <AnimatedCounter target={waitlistCount + 100} suffix="+" /> founders
+              </p>
             </div>
             <Button
               onClick={() => setWaitlistModalOpen(true)}

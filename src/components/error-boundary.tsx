@@ -1,56 +1,58 @@
-"use client";
+'use client'
 
-import React, { Component, ErrorInfo, ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
+import React, { Component, ErrorInfo, ReactNode } from 'react'
+import { Button } from '@/components/ui/button'
+import { AlertCircle } from 'lucide-react'
 
 interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
+  children: ReactNode
+  fallback?: ReactNode
 }
 
 interface State {
-  hasError: boolean;
-  error: Error | null;
+  hasError: boolean
+  error: Error | null
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
-  };
+  }
 
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error }
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
-    
+    console.error('ErrorBoundary caught an error:', error, errorInfo)
+
     // Log to Sentry
-    if (typeof window !== "undefined") {
-      import("@sentry/nextjs").then((Sentry) => {
-        Sentry.captureException(error, {
-          contexts: {
-            react: {
-              componentStack: errorInfo.componentStack,
+    if (typeof window !== 'undefined') {
+      import('@sentry/nextjs')
+        .then(Sentry => {
+          Sentry.captureException(error, {
+            contexts: {
+              react: {
+                componentStack: errorInfo.componentStack,
+              },
             },
-          },
-        });
-      }).catch((err) => {
-        console.error("Failed to import Sentry:", err);
-      });
+          })
+        })
+        .catch(err => {
+          console.error('Failed to import Sentry:', err)
+        })
     }
   }
 
   private handleReset = () => {
-    this.setState({ hasError: false, error: null });
-  };
+    this.setState({ hasError: false, error: null })
+  }
 
   public render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        return this.props.fallback;
+        return this.props.fallback
       }
 
       return (
@@ -66,7 +68,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <p className="text-muted-foreground mb-4">
                 We encountered an unexpected error. Please try again.
               </p>
-              {process.env.NODE_ENV === "development" && this.state.error && (
+              {process.env.NODE_ENV === 'development' && this.state.error && (
                 <details className="mt-4 text-left">
                   <summary className="text-sm text-muted-foreground cursor-pointer mb-2">
                     Error details
@@ -82,19 +84,15 @@ export class ErrorBoundary extends Component<Props, State> {
               <Button onClick={this.handleReset} variant="default">
                 Try again
               </Button>
-              <Button
-                onClick={() => (window.location.href = "/")}
-                variant="outline"
-              >
+              <Button onClick={() => (window.location.href = '/')} variant="outline">
                 Go home
               </Button>
             </div>
           </div>
         </div>
-      );
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }
-

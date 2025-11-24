@@ -4,22 +4,30 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight, ArrowLeft, Globe, Users, Lock } from 'lucide-react'
 
+interface OnboardingFormData {
+  defaultVisibility?: 'public' | 'community' | 'investor'
+  [key: string]: unknown
+}
+
 interface Screen4Props {
   onNext: () => void
   onBack: () => void
-  formData: any
-  setFormData: (data: any) => void
+  formData: OnboardingFormData
+  setFormData: (data: OnboardingFormData) => void
 }
 
 export function OnboardingScreen4({ onNext, onBack, formData, setFormData }: Screen4Props) {
-  const [selected, setSelected] = useState<'public' | 'community' | 'investor'>(formData.defaultVisibility || 'public')
+  const [selected, setSelected] = useState<'public' | 'community' | 'investor'>(
+    formData.defaultVisibility || 'public'
+  )
 
   const options = [
     {
       value: 'public' as const,
       icon: Globe,
       title: 'Public — Recommended',
-      description: 'Your BuilderLog & ProofCard are visible to anyone. Builds your founder identity.',
+      description:
+        'Your BuilderLog & ProofCard are visible to anyone. Builds your founder identity.',
       recommended: true,
     },
     {
@@ -62,9 +70,7 @@ export function OnboardingScreen4({ onNext, onBack, formData, setFormData }: Scr
           <h2 className="text-4xl md:text-5xl font-light text-white">
             Choose how your work is shared.
           </h2>
-          <p className="text-white/60 text-lg">
-            You can change this per log later.
-          </p>
+          <p className="text-white/60 text-lg">You can change this per log later.</p>
         </motion.div>
 
         {/* Options */}
@@ -91,9 +97,7 @@ export function OnboardingScreen4({ onNext, onBack, formData, setFormData }: Scr
                 <div className="flex items-start gap-4">
                   <div
                     className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      isSelected
-                        ? 'bg-[#7B5CFF]/20 text-[#7B5CFF]'
-                        : 'bg-white/5 text-white/60'
+                      isSelected ? 'bg-[#7B5CFF]/20 text-[#7B5CFF]' : 'bg-white/5 text-white/60'
                     }`}
                   >
                     <Icon className="w-6 h-6" />
@@ -125,12 +129,12 @@ export function OnboardingScreen4({ onNext, onBack, formData, setFormData }: Scr
           })}
         </div>
 
-        {/* Navigation */}
+        {/* Navigation - Hidden on mobile (using MobileBottomNav instead) */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="flex items-center justify-between gap-4 pt-4"
+          className="hidden md:flex items-center justify-between gap-4 pt-4"
         >
           <button
             onClick={onBack}
@@ -152,4 +156,3 @@ export function OnboardingScreen4({ onNext, onBack, formData, setFormData }: Scr
     </motion.div>
   )
 }
-

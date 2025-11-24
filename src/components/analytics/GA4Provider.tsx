@@ -9,4 +9,3 @@ export function GA4Provider() {
 
   return <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
 }
-

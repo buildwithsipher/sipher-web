@@ -111,8 +111,8 @@ const PROOF_CARDS = [
 export function ProofWallSection() {
   return (
     <>
-      <section 
-        aria-labelledby="proofwall-title" 
+      <section
+        aria-labelledby="proofwall-title"
         className="relative py-8 bg-transparent overflow-hidden"
       >
         <div className="max-w-6xl mx-auto">
@@ -124,8 +124,8 @@ export function ProofWallSection() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
-            <h2 
-              id="proofwall-title" 
+            <h2
+              id="proofwall-title"
               className="text-4xl md:text-5xl font-black tracking-tight text-white mb-3"
             >
               What You'll Build on <span className="text-purple-400">Sipher</span>
@@ -154,11 +154,12 @@ export function ProofWallSection() {
                   className="relative rounded-2xl overflow-hidden bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.04)] backdrop-blur-md shadow-xl"
                   style={{
                     WebkitBackdropFilter: 'blur(8px)',
-                    background: 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))',
+                    background:
+                      'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))',
                   }}
-                  whileHover={{ 
-                    y: -6, 
-                    rotate: 0.5, 
+                  whileHover={{
+                    y: -6,
+                    rotate: 0.5,
                     scale: 1.01,
                     boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
                   }}
@@ -167,7 +168,7 @@ export function ProofWallSection() {
                   {/* Neon Edge Glow */}
                   <div className="absolute inset-0 pointer-events-none rounded-2xl" aria-hidden>
                     <div className="absolute inset-0 rounded-2xl ring-1 ring-[rgba(147,51,234,0.06)]" />
-                    <motion.div 
+                    <motion.div
                       className="absolute -inset-1 rounded-2xl blur-[18px]"
                       animate={{
                         opacity: [0.2, 0.35, 0.2],
@@ -177,8 +178,9 @@ export function ProofWallSection() {
                         repeat: Infinity,
                         ease: 'easeInOut',
                       }}
-                      style={{ 
-                        background: 'linear-gradient(90deg, rgba(147,51,234,0.08), rgba(59,130,246,0.06))' 
+                      style={{
+                        background:
+                          'linear-gradient(90deg, rgba(147,51,234,0.08), rgba(59,130,246,0.06))',
                       }}
                     />
                   </div>
@@ -205,9 +207,7 @@ export function ProofWallSection() {
                         <div className="text-sm font-semibold text-white">
                           Founder #{card.founderNumber}
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          Active builder
-                        </div>
+                        <div className="text-xs text-muted-foreground">Active builder</div>
                       </div>
                     </div>
 
@@ -219,7 +219,9 @@ export function ProofWallSection() {
                       </div>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">Commits</span>
-                        <span className="font-semibold text-white">{card.commits} in {card.days} days</span>
+                        <span className="font-semibold text-white">
+                          {card.commits} in {card.days} days
+                        </span>
                       </div>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">Avg. time-to-ship</span>
@@ -248,7 +250,8 @@ export function ProofWallSection() {
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-muted-foreground">ProofCard Score</span>
                         <span className="text-2xl font-black text-purple-400">
-                          {card.score}<span className="text-sm text-muted-foreground">/100</span>
+                          {card.score}
+                          <span className="text-sm text-muted-foreground">/100</span>
                         </span>
                       </div>
                       {/* Progress Bar */}
@@ -281,12 +284,8 @@ export function ProofWallSection() {
 
                 {/* Caption Below Card */}
                 <div className="mt-3">
-                  <div className="text-sm font-medium text-white mb-1">
-                    {card.caption}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {card.description}
-                  </div>
+                  <div className="text-sm font-medium text-white mb-1">{card.caption}</div>
+                  <div className="text-xs text-muted-foreground">{card.description}</div>
                 </div>
               </motion.div>
             ))}
@@ -300,7 +299,8 @@ export function ProofWallSection() {
             transition={{ delay: 0.4, duration: 0.6 }}
             className="mt-8 text-xs text-muted-foreground/80 text-center max-w-2xl mx-auto"
           >
-            These are visual previews of the ProofCards you'll generate on Sipher — intentionally anonymized and not real user data.
+            These are visual previews of the ProofCards you'll generate on Sipher — intentionally
+            anonymized and not real user data.
           </motion.div>
         </div>
       </section>

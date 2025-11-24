@@ -30,8 +30,10 @@ export default function OnboardingWelcomePage() {
         }
 
         // If access granted, fetch user data for the flow
-        const { data: { user: authUser } } = await supabase.auth.getUser()
-        
+        const {
+          data: { user: authUser },
+        } = await supabase.auth.getUser()
+
         if (!authUser) {
           router.push('/?error=not-authenticated')
           return
@@ -76,4 +78,3 @@ export default function OnboardingWelcomePage() {
 
   return <OnboardingFlow user={user} waitlistUser={waitlistUser} />
 }
-

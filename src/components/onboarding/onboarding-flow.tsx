@@ -16,16 +16,30 @@ import { ParticleBurst } from './enhancements/particle-burst'
 import { useScreenReaderAnnouncement, useReducedMotion } from './enhancements/accessibility'
 import { triggerHaptic } from './enhancements/haptic-feedback'
 import { sanitizeName, sanitizeTagline, sanitizeText } from '@/lib/sanitize-client'
-import { saveOnboardingProgress, loadOnboardingProgress, clearOnboardingProgress } from '@/lib/progress-persistence'
+import {
+  saveOnboardingProgress,
+  loadOnboardingProgress,
+  clearOnboardingProgress,
+} from '@/lib/progress-persistence'
 
 interface OnboardingFlowProps {
-  user: any
-  waitlistUser: any
+  user: { email?: string; id?: string } | null
+  waitlistUser: {
+    name?: string | null
+    startup_name?: string | null
+    startup_stage?: string | null
+    city?: string | null
+    what_building?: string | null
+    website_url?: string | null
+    linkedin_url?: string | null
+    profile_picture_url?: string | null
+    startup_logo_url?: string | null
+  }
 }
 
-export function OnboardingFlow({ user, waitlistUser }: OnboardingFlowProps) {
+export function OnboardingFlow({ waitlistUser }: OnboardingFlowProps) {
   const router = useRouter()
-  
+
   // Try to load saved progress
   const savedProgress = loadOnboardingProgress()
   const initialScreen = savedProgress?.currentScreen || 1
@@ -42,13 +56,13 @@ export function OnboardingFlow({ user, waitlistUser }: OnboardingFlowProps) {
     startupLogoUrl: waitlistUser.startup_logo_url || '',
     defaultVisibility: 'public' as 'public' | 'community' | 'investor',
   }
-  
+
   const [currentScreen, setCurrentScreen] = useState(initialScreen)
   const [particleBurst, setParticleBurst] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const prefersReducedMotion = useReducedMotion()
   const { announce, AnnouncementRegion } = useScreenReaderAnnouncement()
-  
+
   const [formData, setFormData] = useState(initialFormData)
 
   // Detect mobile
@@ -66,7 +80,7 @@ export function OnboardingFlow({ user, waitlistUser }: OnboardingFlowProps) {
     saveOnboardingProgress({
       currentScreen,
       formData,
-      timestamp: Date.now(),
+      timestamp: new Date().getTime(),
     })
   }, [currentScreen, formData])
 
@@ -127,23 +141,23 @@ export function OnboardingFlow({ user, waitlistUser }: OnboardingFlowProps) {
   const canGoBack = currentScreen > 1
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-gradient-to-br from-[#0F0F0F] via-[#1A1A1A] to-[#0F0F0F] relative overflow-hidden"
       {...swipeHandlers}
     >
       <AnnouncementRegion />
-      
+
       {/* Particle burst animation */}
-      <ParticleBurst 
-        trigger={particleBurst} 
-        onComplete={() => setParticleBurst(false)}
-      />
+      <ParticleBurst trigger={particleBurst} onComplete={() => setParticleBurst(false)} />
 
       {/* Animated background particles */}
       {!prefersReducedMotion && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#7B5CFF]/5 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#4AA8FF]/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div
+            className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#4AA8FF]/5 rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: '1s' }}
+          />
         </div>
       )}
 
@@ -159,15 +173,15 @@ export function OnboardingFlow({ user, waitlistUser }: OnboardingFlowProps) {
 
       {/* Screen dots indicator */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 flex gap-2 z-40">
-        {[1, 2, 3, 4, 5, 6].map((screen) => (
+        {[1, 2, 3, 4, 5, 6].map(screen => (
           <motion.div
             key={screen}
             className={`w-2 h-2 rounded-full transition-all ${
               screen === currentScreen
                 ? 'bg-[#7B5CFF] w-8'
                 : screen < currentScreen
-                ? 'bg-[#7B5CFF]/50'
-                : 'bg-white/10'
+                  ? 'bg-[#7B5CFF]/50'
+                  : 'bg-white/10'
             }`}
             initial={false}
             animate={{
@@ -214,11 +228,7 @@ export function OnboardingFlow({ user, waitlistUser }: OnboardingFlowProps) {
           />
         )}
         {currentScreen === 5 && (
-          <OnboardingScreen5
-            key="screen5"
-            onNext={handleNext}
-            onBack={handleBack}
-          />
+          <OnboardingScreen5 key="screen5" onNext={handleNext} onBack={handleBack} />
         )}
         {currentScreen === 6 && (
           <OnboardingScreen6
@@ -249,4 +259,3 @@ export function OnboardingFlow({ user, waitlistUser }: OnboardingFlowProps) {
     </div>
   )
 }
-

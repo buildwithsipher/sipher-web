@@ -42,9 +42,7 @@ export function OnboardingScreen5({ onNext, onBack }: Screen5Props) {
           animate={{ opacity: 1, y: 0 }}
           className="text-center space-y-3"
         >
-          <h2 className="text-4xl md:text-5xl font-light text-white">
-            How Sipher Works
-          </h2>
+          <h2 className="text-4xl md:text-5xl font-light text-white">How Sipher Works</h2>
         </motion.div>
 
         {/* Features */}
@@ -81,12 +79,12 @@ export function OnboardingScreen5({ onNext, onBack }: Screen5Props) {
           Your score begins after your first log.
         </motion.p>
 
-        {/* Navigation */}
+        {/* Navigation - Hidden on mobile (using MobileBottomNav instead) */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="flex items-center justify-between gap-4 pt-4"
+          className="hidden md:flex items-center justify-between gap-4 pt-4"
         >
           <button
             onClick={onBack}
@@ -108,4 +106,3 @@ export function OnboardingScreen5({ onNext, onBack }: Screen5Props) {
     </motion.div>
   )
 }
-

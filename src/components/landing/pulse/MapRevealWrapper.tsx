@@ -1,15 +1,15 @@
-"use client";
+'use client'
 
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { motion, useInView } from 'framer-motion'
+import { useRef } from 'react'
 
 interface MapRevealWrapperProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export default function MapRevealWrapper({ children }: MapRevealWrapperProps) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-50px" });
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-50px' })
 
   return (
     <motion.div
@@ -24,11 +24,10 @@ export default function MapRevealWrapper({ children }: MapRevealWrapperProps) {
       }}
       transition={{
         duration: 1.2,
-        ease: "easeOut",
+        ease: 'easeOut',
       }}
     >
       {children}
     </motion.div>
-  );
+  )
 }
-

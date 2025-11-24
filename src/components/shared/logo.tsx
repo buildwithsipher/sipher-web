@@ -17,7 +17,7 @@ export function Logo({ size = 'medium', animated = false, className }: LogoProps
 
   return (
     <div className={cn('flex items-center', className)}>
-      <span 
+      <span
         className={cn(
           'font-black tracking-tight text-white lowercase',
           'font-sans',
@@ -30,4 +30,3 @@ export function Logo({ size = 'medium', animated = false, className }: LogoProps
     </div>
   )
 }
-

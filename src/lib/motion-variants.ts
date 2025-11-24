@@ -7,18 +7,17 @@ export const asteriskVariants = {
   hover: {
     scale: 1.08,
     rotate: 8,
-    transition: { duration: 0.18, ease: "easeOut" },
+    transition: { duration: 0.18, ease: 'easeOut' },
   },
   cta: {
     scale: 1.18,
     rotate: 12,
     opacity: 1,
-    transition: { duration: 0.28, ease: "easeOut" },
+    transition: { duration: 0.28, ease: 'easeOut' },
   },
   pulse: {
     scale: [1, 1.06, 1],
     opacity: [1, 0.95, 1],
-    transition: { duration: 2.4, repeat: Infinity, ease: "easeInOut" },
+    transition: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' },
   },
-};
-
+}

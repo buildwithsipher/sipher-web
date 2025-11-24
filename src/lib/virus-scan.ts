@@ -1,12 +1,12 @@
 /**
  * Virus scanning for uploaded files
- * 
+ *
  * For production, consider integrating with:
  * - ClamAV (open-source antivirus)
  * - VirusTotal API
  * - AWS GuardDuty
  * - Cloudflare Security
- * 
+ *
  * For MVP, we'll do basic validation and structure for future integration
  */
 
@@ -23,7 +23,7 @@ export interface ScanResult {
 export async function scanFile(buffer: Buffer, mimeType: string): Promise<ScanResult> {
   // For images, we've already validated magic bytes
   // This is an additional layer of validation
-  
+
   // Check file size (already done, but double-check)
   if (buffer.length === 0) {
     return {
@@ -48,13 +48,7 @@ export async function scanFile(buffer: Buffer, mimeType: string): Promise<ScanRe
 
     // Check for embedded scripts (basic check)
     const fileContent = buffer.toString('binary', 0, Math.min(1000, buffer.length))
-    const suspiciousPatterns = [
-      '<script',
-      'javascript:',
-      'onerror=',
-      'eval(',
-      'Function(',
-    ]
+    const suspiciousPatterns = ['<script', 'javascript:', 'onerror=', 'eval(', 'Function(']
 
     for (const pattern of suspiciousPatterns) {
       if (fileContent.toLowerCase().includes(pattern.toLowerCase())) {
@@ -68,7 +62,7 @@ export async function scanFile(buffer: Buffer, mimeType: string): Promise<ScanRe
   }
 
   // For production, integrate with actual virus scanning service:
-  // 
+  //
   // Example with VirusTotal (requires API key):
   // const formData = new FormData()
   // formData.append('file', buffer)
@@ -90,18 +84,14 @@ export async function scanFile(buffer: Buffer, mimeType: string): Promise<ScanRe
  * Production-ready virus scanning integration point
  * Replace this with actual antivirus service integration
  */
-export async function scanFileProduction(
-  buffer: Buffer,
-  fileName: string
-): Promise<ScanResult> {
+export async function scanFileProduction(buffer: Buffer, fileName: string): Promise<ScanResult> {
   // TODO: Integrate with production virus scanning service
   // Options:
   // 1. ClamAV (self-hosted)
   // 2. VirusTotal API
   // 3. AWS GuardDuty
   // 4. Cloudflare Security
-  
+
   // For now, use basic validation
   return scanFile(buffer, 'image/unknown')
 }
-

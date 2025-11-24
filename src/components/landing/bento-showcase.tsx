@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { BentoGrid, BentoCard } from '@/components/ui/bento-grid'
 import { ProgressRing } from '@/components/ui/progress-ring'
@@ -8,7 +8,7 @@ import { useRef } from 'react'
 
 export function BentoShowcase() {
   const sectionRef = useRef<HTMLDivElement>(null)
-  const isInView = useInView(sectionRef, { once: true, margin: "-100px" })
+  const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
 
   return (
     <section
@@ -25,7 +25,9 @@ export function BentoShowcase() {
         >
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20">
-              <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider">New</span>
+              <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider">
+                New
+              </span>
             </div>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-4 leading-tight">
@@ -80,9 +82,7 @@ export function BentoShowcase() {
                 <Code2 className="w-5 h-5 text-purple-400 mb-3" />
                 <h3 className="text-lg font-semibold text-white mb-1">Total Logs</h3>
               </div>
-              <div className="text-4xl font-black text-white">
-                42
-              </div>
+              <div className="text-4xl font-black text-white">42</div>
               <p className="text-xs text-muted-foreground mt-2">This month</p>
             </div>
           </BentoCard>
@@ -94,9 +94,7 @@ export function BentoShowcase() {
                 <Calendar className="w-5 h-5 text-cyan-400 mb-3" />
                 <h3 className="text-lg font-semibold text-white mb-1">Active Days</h3>
               </div>
-              <div className="text-4xl font-black text-white">
-                28
-              </div>
+              <div className="text-4xl font-black text-white">28</div>
               <p className="text-xs text-muted-foreground mt-2">Out of 30</p>
             </div>
           </BentoCard>
@@ -135,8 +133,7 @@ export function BentoShowcase() {
                 <h3 className="text-lg font-semibold text-white mb-1">Current Streak</h3>
               </div>
               <div className="text-4xl font-black text-white">
-                7
-                <span className="text-lg text-muted-foreground ml-1">days</span>
+                7<span className="text-lg text-muted-foreground ml-1">days</span>
               </div>
               <p className="text-xs text-muted-foreground mt-2">Keep it going!</p>
             </div>
@@ -149,9 +146,7 @@ export function BentoShowcase() {
                 <Users className="w-5 h-5 text-green-400 mb-3" />
                 <h3 className="text-lg font-semibold text-white mb-1">Founders</h3>
               </div>
-              <div className="text-4xl font-black text-white">
-                247+
-              </div>
+              <div className="text-4xl font-black text-white">247+</div>
               <p className="text-xs text-muted-foreground mt-2">On the waitlist</p>
             </div>
           </BentoCard>
@@ -172,4 +167,3 @@ export function BentoShowcase() {
     </section>
   )
 }
-

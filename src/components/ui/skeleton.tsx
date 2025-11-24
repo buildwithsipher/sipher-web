@@ -1,25 +1,17 @@
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils'
 
 interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string;
+  className?: string
 }
 
 export function Skeleton({ className, ...props }: SkeletonProps) {
-  return (
-    <div
-      className={cn(
-        "animate-pulse rounded-md bg-white/5",
-        className
-      )}
-      {...props}
-    />
-  );
+  return <div className={cn('animate-pulse rounded-md bg-white/5', className)} {...props} />
 }
 
 // Pre-built skeleton components
 export function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn("rounded-xl border border-white/8 bg-white/[0.02] p-6 w-full", className)}>
+    <div className={cn('rounded-xl border border-white/8 bg-white/[0.02] p-6 w-full', className)}>
       <div className="space-y-4">
         <Skeleton className="h-6 w-3/4" />
         <Skeleton className="h-4 w-full" />
@@ -34,35 +26,25 @@ export function SkeletonCard({ className }: { className?: string }) {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 export function SkeletonText({ lines = 3, className }: { lines?: number; className?: string }) {
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn('space-y-2', className)}>
       {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton
-          key={i}
-          className={cn(
-            "h-4",
-            i === lines - 1 ? "w-2/3" : "w-full"
-          )}
-        />
+        <Skeleton key={i} className={cn('h-4', i === lines - 1 ? 'w-2/3' : 'w-full')} />
       ))}
     </div>
-  );
+  )
 }
 
 export function SkeletonAvatar({ size = 40, className }: { size?: number; className?: string }) {
   return (
-    <Skeleton
-      className={cn("rounded-full", className)}
-      style={{ width: size, height: size }}
-    />
-  );
+    <Skeleton className={cn('rounded-full', className)} style={{ width: size, height: size }} />
+  )
 }
 
 export function SkeletonButton({ className }: { className?: string }) {
-  return <Skeleton className={cn("h-10 w-24 rounded-lg", className)} />;
+  return <Skeleton className={cn('h-10 w-24 rounded-lg', className)} />
 }
-

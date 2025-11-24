@@ -6,8 +6,10 @@ import { Suspense } from 'react'
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) {
     redirect('/')

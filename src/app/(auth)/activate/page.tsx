@@ -17,7 +17,7 @@ function ActivateForm() {
 
   const handleActivate = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!token.trim()) {
       toast.error('Please enter your activation token')
       return
@@ -51,7 +51,9 @@ function ActivateForm() {
       }
     } catch (error: any) {
       console.error('Activation error:', error)
-      toast.error(error.message || 'Failed to activate account. Please check your token and try again.')
+      toast.error(
+        error.message || 'Failed to activate account. Please check your token and try again.'
+      )
       setLoading(false)
     }
   }
@@ -66,9 +68,7 @@ function ActivateForm() {
         <div className="glass-card rounded-2xl p-8 space-y-6">
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold text-white">Activate Your Account</h1>
-            <p className="text-white/60">
-              Enter your activation token to get started
-            </p>
+            <p className="text-white/60">Enter your activation token to get started</p>
           </div>
 
           <form onSubmit={handleActivate} className="space-y-4">
@@ -80,7 +80,7 @@ function ActivateForm() {
                 id="token"
                 type="text"
                 value={token}
-                onChange={(e) => setToken(e.target.value)}
+                onChange={e => setToken(e.target.value)}
                 placeholder="Enter your activation token"
                 className="mt-2 bg-white/5 border-white/10 text-white"
                 disabled={loading}
@@ -123,13 +123,14 @@ function ActivateForm() {
 
 export default function ActivatePage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#0F0F0F] flex items-center justify-center">
-        <div className="text-white/60">Loading...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0F0F0F] flex items-center justify-center">
+          <div className="text-white/60">Loading...</div>
+        </div>
+      }
+    >
       <ActivateForm />
     </Suspense>
   )
 }
-

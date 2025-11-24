@@ -8,10 +8,7 @@ export async function GET(request: NextRequest) {
     const expectedAuth = `Bearer ${process.env.ADMIN_SECRET}`
 
     if (authHeader !== expectedAuth) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const supabase = createAdminClient()
@@ -37,17 +34,11 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Fetch error:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch users' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
     }
 
     // Get total count
-    let countQuery = supabase
-      .from('waitlist_users')
-      .select('id', { count: 'exact' })
-      .limit(1)
+    let countQuery = supabase.from('waitlist_users').select('id', { count: 'exact' }).limit(1)
 
     if (status !== 'all') {
       countQuery = countQuery.eq('status', status)
@@ -63,10 +54,6 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Users fetch error:', error)
-    return NextResponse.json(
-      { error: 'Something went wrong' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }
-

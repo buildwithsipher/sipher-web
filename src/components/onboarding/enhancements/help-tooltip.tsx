@@ -50,9 +50,11 @@ export function HelpTooltip({
 
   const arrowClasses = {
     top: 'top-full left-1/2 -translate-x-1/2 border-t-white/20 border-l-transparent border-r-transparent border-b-transparent',
-    bottom: 'bottom-full left-1/2 -translate-x-1/2 border-b-white/20 border-l-transparent border-r-transparent border-t-transparent',
+    bottom:
+      'bottom-full left-1/2 -translate-x-1/2 border-b-white/20 border-l-transparent border-r-transparent border-t-transparent',
     left: 'left-full top-1/2 -translate-y-1/2 border-l-white/20 border-t-transparent border-b-transparent border-r-transparent',
-    right: 'right-full top-1/2 -translate-y-1/2 border-r-white/20 border-t-transparent border-b-transparent border-l-transparent',
+    right:
+      'right-full top-1/2 -translate-y-1/2 border-r-white/20 border-t-transparent border-b-transparent border-l-transparent',
   }
 
   return (
@@ -66,23 +68,33 @@ export function HelpTooltip({
         role="button"
         aria-label="Show help"
         tabIndex={0}
-        onKeyDown={(e) => {
+        onKeyDown={e => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
             setIsOpen(!isOpen)
           }
         }}
       >
-        {children || <HelpCircle className="w-4 h-4 text-white/40 hover:text-white/60 transition-colors" />}
+        {children || (
+          <HelpCircle className="w-4 h-4 text-white/40 hover:text-white/60 transition-colors" />
+        )}
       </div>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
             ref={tooltipRef}
-            initial={{ opacity: 0, scale: 0.95, y: position === 'top' ? 5 : position === 'bottom' ? -5 : 0 }}
+            initial={{
+              opacity: 0,
+              scale: 0.95,
+              y: position === 'top' ? 5 : position === 'bottom' ? -5 : 0,
+            }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: position === 'top' ? 5 : position === 'bottom' ? -5 : 0 }}
+            exit={{
+              opacity: 0,
+              scale: 0.95,
+              y: position === 'top' ? 5 : position === 'bottom' ? -5 : 0,
+            }}
             transition={{ duration: 0.2 }}
             className={`absolute ${positionClasses[position]} z-50 w-64 glass-card rounded-lg p-4 text-sm text-white/90 shadow-xl`}
             role="tooltip"
@@ -104,4 +116,3 @@ export function HelpTooltip({
     </div>
   )
 }
-

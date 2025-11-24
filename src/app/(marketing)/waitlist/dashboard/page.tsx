@@ -192,7 +192,7 @@ export default function WaitlistDashboard() {
     try {
       // Use API route with admin client to bypass RLS and fetch all users
       const response = await fetch('/api/waitlist/activities')
-      
+
       if (!response.ok) {
         console.error('Failed to fetch activities')
         setLiveActivities([])
@@ -231,9 +231,7 @@ export default function WaitlistDashboard() {
       .not('city', 'is', null)
 
     const uniqueCities = new Set(
-      cities && !citiesError
-        ? cities.map((c) => c.city).filter(Boolean)
-        : []
+      cities && !citiesError ? cities.map(c => c.city).filter(Boolean) : []
     )
 
     setCommunityStats({
@@ -265,7 +263,9 @@ export default function WaitlistDashboard() {
 
       if (!response.ok) {
         if (response.status === 429) {
-          toast.error(`Too many update attempts. Please wait ${Math.ceil(data.retryAfter / 60)} minutes.`)
+          toast.error(
+            `Too many update attempts. Please wait ${Math.ceil(data.retryAfter / 60)} minutes.`
+          )
         } else if (response.status === 400 && data.details) {
           const firstError = data.details[0]
           toast.error(firstError?.message || 'Validation failed')
@@ -306,7 +306,7 @@ export default function WaitlistDashboard() {
       }
 
       const { url } = await response.json()
-      
+
       // Update local state immediately
       setWaitlistData({
         ...waitlistData,
@@ -324,25 +324,27 @@ export default function WaitlistDashboard() {
     } catch (error: any) {
       console.error('Upload error:', error)
       toast.error(error.message || 'Failed to upload image')
-      
+
       // Send to Sentry for monitoring
       if (typeof window !== 'undefined') {
-        import('@sentry/nextjs').then((Sentry) => {
-          Sentry.captureException(error, {
-            tags: {
-              errorType: 'file_upload_error',
-              uploadType: type,
-            },
-            extra: {
-              userId: waitlistData.id,
-              fileName: file.name,
-              fileSize: file.size,
-              fileType: file.type,
-            },
+        import('@sentry/nextjs')
+          .then(Sentry => {
+            Sentry.captureException(error, {
+              tags: {
+                errorType: 'file_upload_error',
+                uploadType: type,
+              },
+              extra: {
+                userId: waitlistData.id,
+                fileName: file.name,
+                fileSize: file.size,
+                fileType: file.type,
+              },
+            })
           })
-        }).catch(() => {
-          // Silently fail if Sentry is not available
-        })
+          .catch(() => {
+            // Silently fail if Sentry is not available
+          })
       }
     } finally {
       setUploading(null)
@@ -366,7 +368,7 @@ export default function WaitlistDashboard() {
       waitlistData.linkedin_url,
     ]
 
-    fields.forEach((field) => {
+    fields.forEach(field => {
       if (field) score += 1
     })
 
@@ -395,8 +397,7 @@ export default function WaitlistDashboard() {
   oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7)
   const launchDateFormatted = format(oneWeekFromNow, 'MMMM d, yyyy')
   const daysUntilLaunch = Math.ceil(
-    (oneWeekFromNow.getTime() - new Date().getTime()) /
-      (1000 * 60 * 60 * 24)
+    (oneWeekFromNow.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
   )
 
   // Get first name for greeting
@@ -419,7 +420,12 @@ export default function WaitlistDashboard() {
     {
       id: 'approved',
       label: 'Approved',
-      status: waitlistData.status === 'approved' ? 'active' : waitlistData.status === 'activated' ? 'completed' : 'pending',
+      status:
+        waitlistData.status === 'approved'
+          ? 'active'
+          : waitlistData.status === 'activated'
+            ? 'completed'
+            : 'pending',
       description: 'Awaiting activation',
     },
     {
@@ -509,11 +515,15 @@ export default function WaitlistDashboard() {
 
                 {/* Status Badge */}
                 <div className="px-4 py-2 bg-[rgba(255,255,255,0.04)] border border-white/10 rounded-full flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${
-                    waitlistData.status === 'pending' ? 'bg-orange-400 animate-pulse' :
-                    waitlistData.status === 'approved' ? 'bg-blue-400' :
-                    'bg-green-400'
-                  }`} />
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      waitlistData.status === 'pending'
+                        ? 'bg-orange-400 animate-pulse'
+                        : waitlistData.status === 'approved'
+                          ? 'bg-blue-400'
+                          : 'bg-green-400'
+                    }`}
+                  />
                   <span className="text-sm font-medium text-white capitalize">
                     {waitlistData.status}
                   </span>
@@ -528,9 +538,7 @@ export default function WaitlistDashboard() {
                     Private Beta Access Opens In: {daysUntilLaunch} days
                   </h3>
                 </div>
-                <p className="text-sm text-[#A0A0A8]">
-                  {launchDateFormatted}
-                </p>
+                <p className="text-sm text-[#A0A0A8]">{launchDateFormatted}</p>
               </div>
             </div>
           </div>
@@ -584,7 +592,7 @@ export default function WaitlistDashboard() {
                         <label
                           htmlFor="profile-upload-drawer"
                           className="flex-1 cursor-pointer"
-                          onClick={(e) => {
+                          onClick={e => {
                             if (uploading === 'profile') {
                               e.preventDefault()
                               return
@@ -596,7 +604,7 @@ export default function WaitlistDashboard() {
                             variant="outline"
                             className="w-full gap-2 border-white/10 hover:border-[#7F5BFF]/40"
                             disabled={uploading === 'profile'}
-                            onMouseDown={(e) => {
+                            onMouseDown={e => {
                               // Prevent button from preventing label click
                               e.preventDefault()
                             }}
@@ -609,7 +617,9 @@ export default function WaitlistDashboard() {
                             ) : (
                               <>
                                 <Upload className="w-4 h-4" />
-                                {waitlistData?.profile_picture_url ? 'Change Photo' : 'Upload Photo'}
+                                {waitlistData?.profile_picture_url
+                                  ? 'Change Photo'
+                                  : 'Upload Photo'}
                               </>
                             )}
                           </Button>
@@ -619,7 +629,7 @@ export default function WaitlistDashboard() {
                           type="file"
                           accept="image/jpeg,image/png,image/webp"
                           className="hidden"
-                          onChange={(e) => {
+                          onChange={e => {
                             const file = e.target.files?.[0]
                             if (file) handleFileUpload('profile', file)
                             // Reset input to allow re-uploading the same file
@@ -649,7 +659,7 @@ export default function WaitlistDashboard() {
                         <label
                           htmlFor="logo-upload-drawer"
                           className="flex-1 cursor-pointer"
-                          onClick={(e) => {
+                          onClick={e => {
                             if (uploading === 'logo') {
                               e.preventDefault()
                               return
@@ -661,7 +671,7 @@ export default function WaitlistDashboard() {
                             variant="outline"
                             className="w-full gap-2 border-white/10 hover:border-[#7F5BFF]/40"
                             disabled={uploading === 'logo'}
-                            onMouseDown={(e) => {
+                            onMouseDown={e => {
                               // Prevent button from preventing label click
                               e.preventDefault()
                             }}
@@ -684,7 +694,7 @@ export default function WaitlistDashboard() {
                           type="file"
                           accept="image/jpeg,image/png,image/webp"
                           className="hidden"
-                          onChange={(e) => {
+                          onChange={e => {
                             const file = e.target.files?.[0]
                             if (file) handleFileUpload('logo', file)
                             // Reset input to allow re-uploading the same file
@@ -697,30 +707,36 @@ export default function WaitlistDashboard() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="text-sm text-[#A0A0A8]">Full Name</Label>
+                      <Label htmlFor="name" className="text-sm text-[#A0A0A8]">
+                        Full Name
+                      </Label>
                       <Input
                         id="name"
                         value={editForm.name}
-                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                        onChange={e => setEditForm({ ...editForm, name: e.target.value })}
                         className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="startup_name" className="text-sm text-[#A0A0A8]">Startup</Label>
+                      <Label htmlFor="startup_name" className="text-sm text-[#A0A0A8]">
+                        Startup
+                      </Label>
                       <Input
                         id="startup_name"
                         value={editForm.startup_name}
-                        onChange={(e) => setEditForm({ ...editForm, startup_name: e.target.value })}
+                        onChange={e => setEditForm({ ...editForm, startup_name: e.target.value })}
                         className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="startup_stage" className="text-sm text-[#A0A0A8]">Stage</Label>
+                      <Label htmlFor="startup_stage" className="text-sm text-[#A0A0A8]">
+                        Stage
+                      </Label>
                       <Select
                         value={editForm.startup_stage}
-                        onValueChange={(value) => setEditForm({ ...editForm, startup_stage: value })}
+                        onValueChange={value => setEditForm({ ...editForm, startup_stage: value })}
                       >
                         <SelectTrigger className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white">
                           <SelectValue placeholder="Select stage" />
@@ -736,42 +752,50 @@ export default function WaitlistDashboard() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="city" className="text-sm text-[#A0A0A8]">City</Label>
+                      <Label htmlFor="city" className="text-sm text-[#A0A0A8]">
+                        City
+                      </Label>
                       <Input
                         id="city"
                         value={editForm.city}
-                        onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                        onChange={e => setEditForm({ ...editForm, city: e.target.value })}
                         className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="what_building" className="text-sm text-[#A0A0A8]">Category</Label>
+                      <Label htmlFor="what_building" className="text-sm text-[#A0A0A8]">
+                        Category
+                      </Label>
                       <Input
                         id="what_building"
                         value={editForm.what_building}
-                        onChange={(e) => setEditForm({ ...editForm, what_building: e.target.value })}
+                        onChange={e => setEditForm({ ...editForm, what_building: e.target.value })}
                         className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="website_url" className="text-sm text-[#A0A0A8]">Website</Label>
+                      <Label htmlFor="website_url" className="text-sm text-[#A0A0A8]">
+                        Website
+                      </Label>
                       <Input
                         id="website_url"
                         value={editForm.website_url}
-                        onChange={(e) => setEditForm({ ...editForm, website_url: e.target.value })}
+                        onChange={e => setEditForm({ ...editForm, website_url: e.target.value })}
                         type="url"
                         className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="linkedin_url" className="text-sm text-[#A0A0A8]">LinkedIn</Label>
+                      <Label htmlFor="linkedin_url" className="text-sm text-[#A0A0A8]">
+                        LinkedIn
+                      </Label>
                       <Input
                         id="linkedin_url"
                         value={editForm.linkedin_url}
-                        onChange={(e) => setEditForm({ ...editForm, linkedin_url: e.target.value })}
+                        onChange={e => setEditForm({ ...editForm, linkedin_url: e.target.value })}
                         type="url"
                         className="bg-[rgba(255,255,255,0.04)] border-white/10 text-white"
                       />
@@ -840,7 +864,7 @@ export default function WaitlistDashboard() {
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   className="hidden"
-                  onChange={(e) => {
+                  onChange={e => {
                     const file = e.target.files?.[0]
                     if (file) handleFileUpload('profile', file)
                     // Reset input to allow re-uploading the same file
@@ -869,14 +893,14 @@ export default function WaitlistDashboard() {
                 </div>
                 <div className="flex items-center gap-4 mt-2 text-xs text-[#A0A0A8]">
                   <span className={waitlistData.profile_picture_url ? 'text-green-400' : ''}>
-                    {waitlistData.profile_picture_url ? '●' : '○'} Photo {waitlistData.profile_picture_url ? 'added' : 'missing'}
+                    {waitlistData.profile_picture_url ? '●' : '○'} Photo{' '}
+                    {waitlistData.profile_picture_url ? 'added' : 'missing'}
                   </span>
                   <span className={waitlistData.startup_logo_url ? 'text-green-400' : ''}>
-                    {waitlistData.startup_logo_url ? '●' : '○'} Logo {waitlistData.startup_logo_url ? 'added' : 'missing'}
+                    {waitlistData.startup_logo_url ? '●' : '○'} Logo{' '}
+                    {waitlistData.startup_logo_url ? 'added' : 'missing'}
                   </span>
-                  <span className="text-green-400">
-                    ● Startup details complete
-                  </span>
+                  <span className="text-green-400">● Startup details complete</span>
                 </div>
               </div>
             </div>
@@ -924,7 +948,7 @@ export default function WaitlistDashboard() {
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   className="hidden"
-                  onChange={(e) => {
+                  onChange={e => {
                     const file = e.target.files?.[0]
                     if (file) handleFileUpload('logo', file)
                     // Reset input to allow re-uploading the same file
@@ -941,8 +965,18 @@ export default function WaitlistDashboard() {
                   {waitlistData.startup_name || 'something'}
                 </h4>
                 <div className="space-y-1 text-sm text-[#A0A0A8]">
-                  <p>Stage: <span className="text-white">{waitlistData.startup_stage ? waitlistData.startup_stage.charAt(0).toUpperCase() + waitlistData.startup_stage.slice(1) : '—'}</span></p>
-                  <p>City: <span className="text-white">{waitlistData.city || '—'}</span></p>
+                  <p>
+                    Stage:{' '}
+                    <span className="text-white">
+                      {waitlistData.startup_stage
+                        ? waitlistData.startup_stage.charAt(0).toUpperCase() +
+                          waitlistData.startup_stage.slice(1)
+                        : '—'}
+                    </span>
+                  </p>
+                  <p>
+                    City: <span className="text-white">{waitlistData.city || '—'}</span>
+                  </p>
                 </div>
               </div>
             </div>
@@ -996,8 +1030,8 @@ export default function WaitlistDashboard() {
                             isCompleted
                               ? 'bg-[#7F5BFF] border-[#7F5BFF]'
                               : isActive
-                              ? 'bg-[#7F5BFF]/20 border-[#7F5BFF] animate-pulse'
-                              : 'bg-[rgba(255,255,255,0.04)] border-white/10'
+                                ? 'bg-[#7F5BFF]/20 border-[#7F5BFF] animate-pulse'
+                                : 'bg-[rgba(255,255,255,0.04)] border-white/10'
                           }`}
                         >
                           {isCompleted && (
@@ -1014,9 +1048,11 @@ export default function WaitlistDashboard() {
 
                       {/* Content */}
                       <div className="flex-1 pt-1">
-                        <h3 className={`text-base font-medium mb-1 ${
-                          isActive ? 'text-white' : isCompleted ? 'text-white' : 'text-[#A0A0A8]'
-                        }`}>
+                        <h3
+                          className={`text-base font-medium mb-1 ${
+                            isActive ? 'text-white' : isCompleted ? 'text-white' : 'text-[#A0A0A8]'
+                          }`}
+                        >
                           {step.label}
                         </h3>
                         <p className="text-sm text-[#A0A0A8]">{step.description}</p>
@@ -1057,9 +1093,7 @@ export default function WaitlistDashboard() {
                     className="flex items-center gap-3 text-sm"
                   >
                     <span className="text-[#A0A0A8]">•</span>
-                    <span className="text-white">
-                      Founder {activity.action}
-                    </span>
+                    <span className="text-white">Founder {activity.action}</span>
                     <span className="text-[#A0A0A8] ml-auto">
                       {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                     </span>
@@ -1068,9 +1102,7 @@ export default function WaitlistDashboard() {
               </AnimatePresence>
 
               {liveActivities.length === 0 && (
-                <p className="text-sm text-[#A0A0A8] text-center py-8">
-                  No recent activity
-                </p>
+                <p className="text-sm text-[#A0A0A8] text-center py-8">No recent activity</p>
               )}
             </div>
           </div>
@@ -1087,7 +1119,7 @@ export default function WaitlistDashboard() {
             <h2 className="text-xl font-semibold mb-8 text-white">▌ What's Coming</h2>
 
             <div className="space-y-4">
-              {roadmapItems.map((item) => (
+              {roadmapItems.map(item => (
                 <Accordion
                   key={item.id}
                   type="single"
@@ -1108,7 +1140,7 @@ export default function WaitlistDashboard() {
                     </AccordionTrigger>
                     <AccordionContent className="pb-4 pl-12">
                       <div className="flex flex-wrap gap-2">
-                        {item.features.map((feature) => (
+                        {item.features.map(feature => (
                           <span
                             key={feature}
                             className="px-3 py-1 bg-[rgba(255,255,255,0.04)] border border-white/10 rounded-full text-sm text-[#A0A0A8]"

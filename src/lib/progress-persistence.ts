@@ -83,4 +83,3 @@ export function clearOnboardingProgress() {
   if (typeof window === 'undefined') return
   localStorage.removeItem(STORAGE_KEY)
 }
-

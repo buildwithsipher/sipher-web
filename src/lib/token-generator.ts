@@ -20,4 +20,3 @@ export function generateSecureToken(length: number = 32): string {
 export function generateActivationToken(): string {
   return generateSecureToken(32) // 64 hex characters
 }
-

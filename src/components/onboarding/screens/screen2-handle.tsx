@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowRight, ArrowLeft, Check } from 'lucide-react'
+import { ArrowRight, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import { MagneticButton } from '../enhancements/magnetic-button'
 import { RippleEffect } from '../enhancements/ripple-effect'
@@ -11,11 +11,17 @@ import { HelpTooltip } from '../enhancements/help-tooltip'
 import { triggerHaptic } from '../enhancements/haptic-feedback'
 import { sanitizeHandle } from '@/lib/sanitize-client'
 
+interface OnboardingFormData {
+  handle?: string
+  name?: string
+  [key: string]: unknown
+}
+
 interface Screen2Props {
   onNext: () => void
   onBack: () => void
-  formData: any
-  setFormData: (data: any) => void
+  formData: OnboardingFormData
+  setFormData: (data: OnboardingFormData) => void
 }
 
 export function OnboardingScreen2({ onNext, onBack, formData, setFormData }: Screen2Props) {
@@ -49,7 +55,7 @@ export function OnboardingScreen2({ onNext, onBack, formData, setFormData }: Scr
       }
 
       setIsChecking(true)
-      
+
       try {
         // Use secure API endpoint with rate limiting
         const response = await fetch('/api/onboarding/check-handle', {
@@ -63,7 +69,9 @@ export function OnboardingScreen2({ onNext, onBack, formData, setFormData }: Scr
         if (!response.ok) {
           if (response.status === 429) {
             const data = await response.json()
-            toast.error(`Too many requests. Please wait ${Math.ceil(data.retryAfter / 60)} minutes.`)
+            toast.error(
+              `Too many requests. Please wait ${Math.ceil(data.retryAfter / 60)} minutes.`
+            )
             setIsValid(false)
             setIsChecking(false)
             return
@@ -114,12 +122,8 @@ export function OnboardingScreen2({ onNext, onBack, formData, setFormData }: Scr
           animate={{ opacity: 1, y: 0 }}
           className="space-y-3"
         >
-          <h2 className="text-4xl md:text-5xl font-light text-white">
-            Choose your Builder ID
-          </h2>
-          <p className="text-white/60 text-lg">
-            This becomes your public identity on Sipher.
-          </p>
+          <h2 className="text-4xl md:text-5xl font-light text-white">Choose your Builder ID</h2>
+          <p className="text-white/60 text-lg">This becomes your public identity on Sipher.</p>
         </motion.div>
 
         {/* Input Card */}
@@ -138,11 +142,13 @@ export function OnboardingScreen2({ onNext, onBack, formData, setFormData }: Scr
               />
             </div>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 text-lg">@</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 text-lg">
+                @
+              </span>
               <input
                 type="text"
                 value={handle}
-                onChange={(e) => {
+                onChange={e => {
                   // Sanitize input on change
                   const sanitized = sanitizeHandle(e.target.value)
                   setHandle(sanitized)
@@ -159,9 +165,7 @@ export function OnboardingScreen2({ onNext, onBack, formData, setFormData }: Scr
                 aria-label="Choose your builder handle"
                 aria-describedby="handle-help"
               />
-              {isValid && !isChecking && (
-                <SuccessAnimation show={true} />
-              )}
+              {isValid && !isChecking && <SuccessAnimation show={true} />}
             </div>
             {isChecking && (
               <p className="text-sm text-white/40" role="status" aria-live="polite">
@@ -186,9 +190,7 @@ export function OnboardingScreen2({ onNext, onBack, formData, setFormData }: Scr
             </p>
           </div>
 
-          <p className="text-xs text-white/40">
-            Keep it clean. You can't change this later.
-          </p>
+          <p className="text-xs text-white/40">Keep it clean. You can&apos;t change this later.</p>
         </motion.div>
 
         {/* Navigation */}
@@ -196,7 +198,7 @@ export function OnboardingScreen2({ onNext, onBack, formData, setFormData }: Scr
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="flex items-center justify-between gap-4"
+          className="hidden md:flex items-center justify-between gap-4"
         >
           <button
             onClick={onBack}
@@ -221,4 +223,3 @@ export function OnboardingScreen2({ onNext, onBack, formData, setFormData }: Scr
     </motion.div>
   )
 }
-

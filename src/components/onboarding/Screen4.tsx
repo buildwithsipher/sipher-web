@@ -11,14 +11,27 @@ interface Screen4Props {
     name: string
     startupName: string
     city: string
+    linkedinUrl?: string
   }
   setData: (data: any) => void
 }
 
 const TOP_CITIES = [
-  'Mumbai', 'Bangalore', 'Delhi', 'Hyderabad', 'Chennai',
-  'Pune', 'Kolkata', 'Ahmedabad', 'Jaipur', 'Surat',
-  'Lucknow', 'Kanpur', 'Nagpur', 'Indore', 'Other'
+  'Mumbai',
+  'Bangalore',
+  'Delhi',
+  'Hyderabad',
+  'Chennai',
+  'Pune',
+  'Kolkata',
+  'Ahmedabad',
+  'Jaipur',
+  'Surat',
+  'Lucknow',
+  'Kanpur',
+  'Nagpur',
+  'Indore',
+  'Other',
 ]
 
 export function OnboardingScreen4({ onNext, onBack, data, setData }: Screen4Props) {
@@ -78,7 +91,7 @@ export function OnboardingScreen4({ onNext, onBack, data, setData }: Screen4Prop
             <input
               type="text"
               value={data.name}
-              onChange={(e) => setData({ ...data, name: e.target.value })}
+              onChange={e => setData({ ...data, name: e.target.value })}
               placeholder="Srideep Goud"
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all"
             />
@@ -90,7 +103,7 @@ export function OnboardingScreen4({ onNext, onBack, data, setData }: Screen4Prop
             <input
               type="text"
               value={data.startupName}
-              onChange={(e) => setData({ ...data, startupName: e.target.value })}
+              onChange={e => setData({ ...data, startupName: e.target.value })}
               placeholder="Sipher"
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all"
             />
@@ -115,7 +128,7 @@ export function OnboardingScreen4({ onNext, onBack, data, setData }: Screen4Prop
                   animate={{ opacity: 1, y: 0 }}
                   className="absolute z-10 w-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-60 overflow-y-auto"
                 >
-                  {TOP_CITIES.map((city) => (
+                  {TOP_CITIES.map(city => (
                     <button
                       key={city}
                       onClick={() => {
@@ -131,6 +144,19 @@ export function OnboardingScreen4({ onNext, onBack, data, setData }: Screen4Prop
                 </motion.div>
               )}
             </div>
+          </div>
+
+          {/* LinkedIn URL */}
+          <div className="space-y-2">
+            <label className="text-sm text-white/60">LinkedIn URL (optional)</label>
+            <input
+              type="url"
+              value={data.linkedinUrl || ''}
+              onChange={e => setData({ ...data, linkedinUrl: e.target.value })}
+              placeholder="https://www.linkedin.com/in/you"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all"
+            />
+            <p className="text-xs text-white/40">Helps other founders learn more about you.</p>
           </div>
         </motion.div>
 
@@ -165,4 +191,3 @@ export function OnboardingScreen4({ onNext, onBack, data, setData }: Screen4Prop
     </motion.div>
   )
 }
-

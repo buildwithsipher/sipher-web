@@ -1,50 +1,50 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { Logo } from "@/components/shared/logo";
+import Link from 'next/link'
+import { Logo } from '@/components/shared/logo'
 
 export default function SipherFooter() {
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     // Handle hash navigation
-    if (href.startsWith("#")) {
-      const targetId = href.slice(1);
-      
+    if (href.startsWith('#')) {
+      const targetId = href.slice(1)
+
       // Map footer links to tab IDs
       const tabMap: Record<string, string> = {
-        'problem': 'problem',
-        'solution': 'solution',
+        problem: 'problem',
+        solution: 'solution',
         'live-demo': 'playground',
-        'proof': 'proof',
-        'pulse': 'pulse',
-        'roadmap': 'roadmap',
-        'founder': 'letter',
-      };
-      
-      const tabId = tabMap[targetId];
-      
+        proof: 'proof',
+        pulse: 'pulse',
+        roadmap: 'roadmap',
+        founder: 'letter',
+      }
+
+      const tabId = tabMap[targetId]
+
       if (tabId) {
         // Dispatch custom event to switch tab
-        const event = new CustomEvent('switchTab', { detail: { tabId } });
-        window.dispatchEvent(event);
-        
+        const event = new CustomEvent('switchTab', { detail: { tabId } })
+        window.dispatchEvent(event)
+
         // Also scroll to top of main content
-        const mainContent = document.querySelector('main');
+        const mainContent = document.querySelector('main')
         if (mainContent) {
-          mainContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          mainContent.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }
       } else {
         // Try to find element by ID for other sections
-        const element = document.getElementById(targetId);
+        const element = document.getElementById(targetId)
         if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "start" });
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }
       }
     } else {
-      window.location.href = href;
+      window.location.href = href
     }
-  };
+  }
 
   return (
     <footer className="relative w-full bg-[#0b0b0c] border-t border-white/10 pt-20 pb-10">
@@ -66,18 +66,18 @@ export default function SipherFooter() {
       {/* NAVIGATION */}
       <div className="flex flex-wrap justify-center gap-6 text-sm mb-12 px-4">
         {[
-          { label: "Problem", href: "#problem" },
-          { label: "Solution", href: "#solution" },
-          { label: "Live Demo", href: "#live-demo" },
-          { label: "ProofCard", href: "#proof" },
-          { label: "Pulse", href: "#pulse" },
-          { label: "Roadmap", href: "#roadmap" },
-          { label: "Founder Letter", href: "#founder" },
-        ].map((item) => (
+          { label: 'Problem', href: '#problem' },
+          { label: 'Solution', href: '#solution' },
+          { label: 'Live Demo', href: '#live-demo' },
+          { label: 'ProofCard', href: '#proof' },
+          { label: 'Pulse', href: '#pulse' },
+          { label: 'Roadmap', href: '#roadmap' },
+          { label: 'Founder Letter', href: '#founder' },
+        ].map(item => (
           <Link
             key={item.label}
             href={item.href}
-            onClick={(e) => handleNavClick(e, item.href)}
+            onClick={e => handleNavClick(e, item.href)}
             className="text-white/40 hover:text-white/80 transition-all duration-200 hover:drop-shadow-[0_0_4px_rgba(168,85,247,0.5)]"
           >
             {item.label}
@@ -105,14 +105,14 @@ export default function SipherFooter() {
         <div className="md:text-center">
           <p className="text-white/50 text-xs uppercase tracking-wide mb-2">Legal</p>
           <div className="space-y-1 text-sm">
-            <Link 
-              href="/terms" 
+            <Link
+              href="/terms"
               className="text-white/30 hover:text-purple-300 transition-colors duration-200 block"
             >
               Terms
             </Link>
-            <Link 
-              href="/privacy" 
+            <Link
+              href="/privacy"
               className="text-white/30 hover:text-purple-300 transition-colors duration-200 block"
             >
               Privacy
@@ -124,10 +124,10 @@ export default function SipherFooter() {
         <div className="md:text-right flex md:block justify-center">
           <Link
             href="#waitlist"
-            onClick={(e) => {
-              e.preventDefault();
+            onClick={e => {
+              e.preventDefault()
               // Trigger waitlist modal - this will be handled by the landing page
-              window.dispatchEvent(new CustomEvent('openWaitlist'));
+              window.dispatchEvent(new CustomEvent('openWaitlist'))
             }}
             className="border border-white/10 text-purple-400 px-5 py-2 rounded-lg text-sm hover:border-purple-400/50 hover:text-purple-300 transition-all duration-200 hover:shadow-[0_0_10px_rgba(168,85,247,0.4)] inline-block"
           >
@@ -141,6 +141,5 @@ export default function SipherFooter() {
         © 2025 Sipher. All rights reserved.
       </div>
     </footer>
-  );
+  )
 }
-

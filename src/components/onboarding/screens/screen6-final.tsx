@@ -3,20 +3,40 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Sparkles, ExternalLink } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+
+interface OnboardingFormData {
+  handle: string
+  name: string
+  startupName: string
+  startupStage: string
+  city: string
+  tagline: string
+  websiteUrl: string
+  linkedinUrl: string
+  profilePictureUrl: string
+  startupLogoUrl: string
+  defaultVisibility: 'public' | 'community' | 'investor'
+}
 
 interface Screen6Props {
   onComplete: () => void
   onBack: () => void
-  formData: any
+  formData: OnboardingFormData
 }
 
 export function OnboardingScreen6({ onComplete, onBack, formData }: Screen6Props) {
   const [isCompleting, setIsCompleting] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
+
+  // Generate confetti particle positions once on mount
+  const confettiParticles = useState(() =>
+    Array.from({ length: 12 }, () => ({
+      x: 50 + (Math.random() - 0.5) * 100,
+      y: 50 + (Math.random() - 0.5) * 100,
+    }))
+  )[0]
 
   const handleComplete = async () => {
     setIsCompleting(true)
@@ -60,17 +80,17 @@ export function OnboardingScreen6({ onComplete, onBack, formData }: Screen6Props
       }
 
       toast.success('Onboarding complete!')
-      
+
       // Clear any saved progress
       if (typeof window !== 'undefined') {
         localStorage.removeItem('sipher_onboarding_progress')
       }
-      
+
       // Small delay for animation
       setTimeout(() => {
         router.push('/dashboard')
       }, 500)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Completion error:', error)
       // Generic error message (don't expose details)
       toast.error('Failed to complete onboarding. Please try again.')
@@ -88,7 +108,7 @@ export function OnboardingScreen6({ onComplete, onBack, formData }: Screen6Props
     >
       {/* Confetti particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(12)].map((_, i) => (
+        {confettiParticles.map((particle, i) => (
           <motion.div
             key={i}
             className="absolute w-2 h-2 bg-[#7B5CFF] rounded-full"
@@ -98,8 +118,8 @@ export function OnboardingScreen6({ onComplete, onBack, formData }: Screen6Props
               opacity: 0,
             }}
             animate={{
-              x: `${50 + (Math.random() - 0.5) * 100}%`,
-              y: `${50 + (Math.random() - 0.5) * 100}%`,
+              x: `${particle.x}%`,
+              y: `${particle.y}%`,
               opacity: [0, 1, 0],
             }}
             transition={{
@@ -135,9 +155,7 @@ export function OnboardingScreen6({ onComplete, onBack, formData }: Screen6Props
         >
           <div className="flex items-center justify-center gap-2 mb-4">
             <Sparkles className="w-6 h-6 text-[#7B5CFF]" />
-            <h1 className="text-5xl md:text-6xl font-light text-white">
-              You're ready, builder.
-            </h1>
+            <h1 className="text-5xl md:text-6xl font-light text-white">You&apos;re ready, builder.</h1>
             <Sparkles className="w-6 h-6 text-[#7B5CFF]" />
           </div>
           <p className="text-xl md:text-2xl text-white/60 font-light leading-relaxed">
@@ -181,13 +199,13 @@ export function OnboardingScreen6({ onComplete, onBack, formData }: Screen6Props
           </button>
         </motion.div>
 
-        {/* Back button */}
+        {/* Back button - Hidden on mobile (using MobileBottomNav instead) */}
         <motion.button
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
           onClick={onBack}
-          className="flex items-center gap-2 px-6 py-3 text-white/60 hover:text-white transition-colors mx-auto"
+          className="hidden md:flex items-center gap-2 px-6 py-3 text-white/60 hover:text-white transition-colors mx-auto"
         >
           <ArrowLeft className="w-5 h-5" />
           Back
@@ -196,4 +214,3 @@ export function OnboardingScreen6({ onComplete, onBack, formData }: Screen6Props
     </motion.div>
   )
 }
-

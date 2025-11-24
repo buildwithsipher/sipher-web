@@ -8,12 +8,47 @@ import { Logo } from '@/components/shared/logo'
 import { OnboardingScreen2 } from '@/components/onboarding/Screen2'
 import { OnboardingScreen3 } from '@/components/onboarding/Screen3'
 import { OnboardingScreen4 } from '@/components/onboarding/Screen4'
-import { OnboardingScreen5 } from '@/components/onboarding/Screen5'
+// Success screen component for waitlist onboarding
+function SuccessScreen({
+  userName,
+  onViewDashboard,
+}: {
+  userName: string
+  onViewDashboard: () => void
+}) {
+  return (
+    <motion.div
+      key="success"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+      className="flex-1 flex flex-col items-center justify-center px-4 py-20 relative overflow-hidden"
+    >
+      <div className="w-full max-w-md text-center space-y-8 relative z-10">
+        <h1 className="text-3xl md:text-4xl font-light text-white">
+          ✦ You&apos;re on the list, {userName.split(' ')[0]}!
+        </h1>
+        <p className="text-white/60 text-base md:text-lg">
+          Your Sipher profile is being prepared.
+          <br />
+          We&apos;ll notify you when your cohort opens.
+        </p>
+        <button
+          onClick={onViewDashboard}
+          className="w-full px-6 py-4 bg-purple-500 text-white rounded-xl font-medium hover:bg-purple-600 transition-all duration-200 hover:scale-105 active:scale-95"
+        >
+          View Waitlist Dashboard
+        </button>
+      </div>
+    </motion.div>
+  )
+}
 
 export default function OnboardingPage() {
   const router = useRouter()
   const [currentScreen, setCurrentScreen] = useState(2) // Start at Screen 2 (domain selection)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ email?: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [onboardingData, setOnboardingData] = useState({
     domain: '',
@@ -21,13 +56,16 @@ export default function OnboardingPage() {
     name: '',
     startupName: '',
     city: '',
+    linkedinUrl: '',
   })
 
   // Screen 0: Smart Auto-Check
   useEffect(() => {
     async function checkUser() {
       const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
 
       if (!session?.user) {
         // Not signed in, redirect to home
@@ -80,15 +118,20 @@ export default function OnboardingPage() {
   const handleComplete = async () => {
     // Map domain IDs to readable values
     const domainMap: Record<string, string> = {
-      'saas': 'SaaS',
+      saas: 'SaaS',
       'ai-ml': 'AI/ML',
-      'consumer': 'Consumer',
-      'fintech': 'FinTech',
-      'edtech': 'EdTech',
-      'other': 'Other',
+      consumer: 'Consumer',
+      fintech: 'FinTech',
+      edtech: 'EdTech',
+      other: 'Other',
     }
-    
+
     // Submit to waitlist API
+    if (!user?.email) {
+      alert('Please sign in first')
+      return
+    }
+
     try {
       const response = await fetch('/api/waitlist', {
         method: 'POST',
@@ -100,19 +143,31 @@ export default function OnboardingPage() {
           startupStage: onboardingData.stage,
           city: onboardingData.city,
           whatBuilding: domainMap[onboardingData.domain] || onboardingData.domain,
+          linkedinUrl: onboardingData.linkedinUrl?.trim() || '',
         }),
       })
 
-      const result = await response.json()
+      // Safely parse JSON response
+      let result: { error?: string } = {}
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          const text = await response.text()
+          result = text ? JSON.parse(text) : {}
+        } catch (parseError) {
+          console.error('Failed to parse JSON response:', parseError)
+          throw new Error('Invalid response from server')
+        }
+      }
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to join waitlist')
+        throw new Error(result.error || `Failed to join waitlist (${response.status})`)
       }
 
       // Track signup
       const { trackWaitlistSignup } = await import('@/lib/analytics/posthog')
       const { track } = await import('@vercel/analytics')
-      
+
       trackWaitlistSignup({
         startup_stage: onboardingData.stage,
         city: onboardingData.city,
@@ -125,9 +180,10 @@ export default function OnboardingPage() {
 
       // Move to success screen
       setCurrentScreen(5)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Submission error:', error)
-      alert(error.message || 'Something went wrong')
+      const errorMessage = error instanceof Error ? error.message : 'Something went wrong'
+      alert(errorMessage)
     }
   }
 
@@ -143,13 +199,11 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-[#0D0D0D] text-white flex flex-col">
       {/* Progress Dots */}
       <div className="absolute top-8 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-        {[2, 3, 4].map((screen) => (
+        {[2, 3, 4].map(screen => (
           <div
             key={screen}
             className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              screen <= currentScreen
-                ? 'bg-purple-500 w-8'
-                : 'bg-white/20'
+              screen <= currentScreen ? 'bg-purple-500 w-8' : 'bg-white/20'
             }`}
           />
         ))}
@@ -163,7 +217,7 @@ export default function OnboardingPage() {
             onNext={handleNext}
             onBack={() => router.push('/')}
             domain={onboardingData.domain}
-            setDomain={(domain) => setOnboardingData(prev => ({ ...prev, domain }))}
+            setDomain={domain => setOnboardingData(prev => ({ ...prev, domain }))}
             user={user}
           />
         )}
@@ -173,7 +227,7 @@ export default function OnboardingPage() {
             onNext={handleNext}
             onBack={handleBack}
             stage={onboardingData.stage}
-            setStage={(stage) => setOnboardingData(prev => ({ ...prev, stage }))}
+            setStage={stage => setOnboardingData(prev => ({ ...prev, stage }))}
           />
         )}
         {currentScreen === 4 && (
@@ -186,9 +240,9 @@ export default function OnboardingPage() {
           />
         )}
         {currentScreen === 5 && (
-          <OnboardingScreen5
+          <SuccessScreen
             key="screen5"
-            userName={onboardingData.name}
+            userName={onboardingData.name || 'Builder'}
             onViewDashboard={() => router.push('/waitlist/dashboard')}
           />
         )}

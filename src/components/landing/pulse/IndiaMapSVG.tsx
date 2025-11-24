@@ -1,20 +1,20 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { useRef } from "react";
-import { INDIA_PATH } from "./india-path-constant";
-import { useSharedInView } from "./useSharedInView";
+import { motion } from 'framer-motion'
+import { useRef } from 'react'
+import { INDIA_PATH } from './india-path-constant'
+import { useSharedInView } from './useSharedInView'
 
 interface IndiaMapSVGProps {
-  isHovered?: boolean;
-  isScrolling?: boolean;
+  isHovered?: boolean
+  isScrolling?: boolean
 }
 
 export default function IndiaMapSVG({ isHovered = false, isScrolling = false }: IndiaMapSVGProps) {
-  const { inView, ref: sharedRef } = useSharedInView();
-  const ref = useRef<HTMLDivElement>(null);
+  const { inView, ref: sharedRef } = useSharedInView()
+  const ref = useRef<HTMLDivElement>(null)
   // Use shared ref if available, fallback to local ref
-  const activeRef = sharedRef as React.RefObject<HTMLDivElement> || ref;
+  const activeRef = (sharedRef as React.RefObject<HTMLDivElement>) || ref
 
   // Phase 1: Ambient glow reveal (0.3s → 0.8s fade in)
   // Phase 2: Map outline stroke-draw (0.8s - fast, smooth, attractive)
@@ -22,12 +22,14 @@ export default function IndiaMapSVG({ isHovered = false, isScrolling = false }: 
   // Phase 4: Soft breathing glow (infinite 3s loop)
 
   // Cursor hover effects: +20% glow intensity, subtle outline glow
-  const glowIntensity = isHovered ? 1.2 : 1.0;
-  const outlineGlow = isHovered ? "drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]" : "drop-shadow-[0_0_20px_rgba(180,120,255,0.3)]";
+  const glowIntensity = isHovered ? 1.2 : 1.0
+  const outlineGlow = isHovered
+    ? 'drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]'
+    : 'drop-shadow-[0_0_20px_rgba(180,120,255,0.3)]'
 
   return (
-    <div 
-      ref={activeRef} 
+    <div
+      ref={activeRef}
       className="relative w-full mx-auto"
       style={{
         contain: 'layout style paint', // Scroll containment
@@ -37,11 +39,11 @@ export default function IndiaMapSVG({ isHovered = false, isScrolling = false }: 
     >
       {/* Phase 1: Ambient glow reveal (fade in, not pop) */}
       {/* Removed blur entirely - use solid gradient with CSS variable for performance */}
-      <motion.div 
+      <motion.div
         className="absolute inset-0"
         style={{
           // Replace blur with solid gradient during scroll for better performance
-          background: isScrolling 
+          background: isScrolling
             ? 'radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, rgba(6, 182, 212, 0.06) 40%, transparent 70%)'
             : 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(6, 182, 212, 0.08) 40%, transparent 70%)',
           filter: isScrolling ? 'none' : 'blur(40px)', // Only blur when not scrolling
@@ -51,16 +53,16 @@ export default function IndiaMapSVG({ isHovered = false, isScrolling = false }: 
           display: isScrolling ? 'none' : 'block', // Hide during scroll for maximum performance
         }}
         animate={{
-          opacity: inView ? (0.6 * glowIntensity * (isScrolling ? 0.7 : 1)) : 0,
+          opacity: inView ? 0.6 * glowIntensity * (isScrolling ? 0.7 : 1) : 0,
         }}
         transition={{
           duration: isScrolling ? 0 : 0.8,
           delay: isScrolling ? 0 : 0.3,
-          ease: "easeOut",
+          ease: 'easeOut',
         }}
       />
 
-        {/* Dotted Grid Layer (fade in with glow) */}
+      {/* Dotted Grid Layer (fade in with glow) */}
       <motion.svg
         viewBox="0 0 1000 1200"
         className="absolute inset-0 w-full h-full"
@@ -77,7 +79,7 @@ export default function IndiaMapSVG({ isHovered = false, isScrolling = false }: 
         transition={{
           duration: 0.8,
           delay: 0.3,
-          ease: "easeOut",
+          ease: 'easeOut',
         }}
       >
         {Array.from({ length: 220 }).map((_, i) => (
@@ -102,23 +104,23 @@ export default function IndiaMapSVG({ isHovered = false, isScrolling = false }: 
         <defs>
           {/* Gradient for inner glow fill */}
           <linearGradient id="noirGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.18"/>
-            <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.08"/>
+            <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.08" />
           </linearGradient>
-          
+
           {/* Gradient stroke - purple to cyan for visual interest */}
           <linearGradient id="strokeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#a855f7" stopOpacity="1"/> {/* purple-500 */}
-            <stop offset="50%" stopColor="#8b5cf6" stopOpacity="1"/> {/* purple-600 */}
-            <stop offset="100%" stopColor="#06b6d4" stopOpacity="1"/> {/* cyan-500 */}
+            <stop offset="0%" stopColor="#a855f7" stopOpacity="1" /> {/* purple-500 */}
+            <stop offset="50%" stopColor="#8b5cf6" stopOpacity="1" /> {/* purple-600 */}
+            <stop offset="100%" stopColor="#06b6d4" stopOpacity="1" /> {/* cyan-500 */}
           </linearGradient>
-          
+
           {/* Glow filter for trailing effect */}
           <filter id="glow">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
             <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
         </defs>
@@ -131,12 +133,12 @@ export default function IndiaMapSVG({ isHovered = false, isScrolling = false }: 
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
-          filter={isScrolling ? undefined : "url(#glow)"} // Disable glow filter during scroll
-          initial={{ 
+          filter={isScrolling ? undefined : 'url(#glow)'} // Disable glow filter during scroll
+          initial={{
             pathLength: 0,
             opacity: 0,
           }}
-          animate={{ 
+          animate={{
             pathLength: inView && !isScrolling ? 1 : inView ? 1 : 0, // Pause animation during scroll
             opacity: inView && !isScrolling ? 1 : inView ? 0.8 : 0,
           }}
@@ -155,11 +157,11 @@ export default function IndiaMapSVG({ isHovered = false, isScrolling = false }: 
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
-          initial={{ 
+          initial={{
             pathLength: 0,
             opacity: 0,
           }}
-          animate={{ 
+          animate={{
             pathLength: inView && !isScrolling ? 1 : inView ? 1 : 0, // Pause animation during scroll
             opacity: inView && !isScrolling ? 1 : inView ? 0.9 : 0,
           }}
@@ -178,11 +180,11 @@ export default function IndiaMapSVG({ isHovered = false, isScrolling = false }: 
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
-          initial={{ 
+          initial={{
             pathLength: 0,
             opacity: 0,
           }}
-          animate={{ 
+          animate={{
             pathLength: inView && !isScrolling ? 1 : inView ? 1 : 0, // Pause animation during scroll
             opacity: inView && !isScrolling ? 0.9 : inView ? 0.8 : 0,
           }}
@@ -198,32 +200,37 @@ export default function IndiaMapSVG({ isHovered = false, isScrolling = false }: 
           d={INDIA_PATH}
           fill="url(#noirGlow)"
           initial={{ opacity: 0 }}
-          animate={{ 
+          animate={{
             opacity: inView ? 0.3 : 0,
           }}
           transition={{
             duration: 0.6,
             delay: 1.3, // After stroke completes (0.5 + 0.8)
-            ease: "easeOut",
+            ease: 'easeOut',
           }}
         />
       </svg>
 
       {/* Phase 4: Soft Breathing Glow (hidden during scroll for maximum performance) */}
-      <motion.div 
+      <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
           // Replace blur with solid gradient during scroll
-          background: 'radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.06) 0%, rgba(6, 182, 212, 0.03) 50%, transparent 70%)',
+          background:
+            'radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.06) 0%, rgba(6, 182, 212, 0.03) 50%, transparent 70%)',
           filter: isScrolling ? 'none' : 'blur(24px)', // Only blur when not scrolling
           willChange: 'opacity', // Keep constant to avoid layer rebuilds
           transform: 'translate3d(0, 0, 0)', // GPU acceleration
           isolation: 'isolate', // Create stacking context
           display: isScrolling ? 'none' : 'block', // Hide completely during scroll
         }}
-        animate={!isScrolling && inView ? {
-          opacity: [0.2, 0.35, 0.2],
-        } : { opacity: 0.25 }}
+        animate={
+          !isScrolling && inView
+            ? {
+                opacity: [0.2, 0.35, 0.2],
+              }
+            : { opacity: 0.25 }
+        }
         transition={{
           duration: 5,
           repeat: Infinity,
@@ -232,5 +239,5 @@ export default function IndiaMapSVG({ isHovered = false, isScrolling = false }: 
         }}
       />
     </div>
-  );
+  )
 }

@@ -1,37 +1,37 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { useMemo, memo } from "react";
-import { useSharedInView } from "./useSharedInView";
+import { motion } from 'framer-motion'
+import { useMemo, memo } from 'react'
+import { useSharedInView } from './useSharedInView'
 
 interface ActivityStreamProps {
-  isHovered?: boolean;
-  isScrolling?: boolean;
+  isHovered?: boolean
+  isScrolling?: boolean
 }
 
 // Founder-centric activity stream text
 const activityMessages = [
-  "A founder shipped today",
-  "Building in Mumbai",
-  "Growing in Bangalore",
-  "A founder shipped today",
-  "Building in Delhi",
-  "A founder shipped today",
-  "Growing in Pune",
-  "A founder shipped today",
-  "Building in Hyderabad",
-  "A founder shipped today",
-  "Growing in Chennai",
-  "A founder shipped today",
-  "Building in Kolkata",
-];
+  'A founder shipped today',
+  'Building in Mumbai',
+  'Growing in Bangalore',
+  'A founder shipped today',
+  'Building in Delhi',
+  'A founder shipped today',
+  'Growing in Pune',
+  'A founder shipped today',
+  'Building in Hyderabad',
+  'A founder shipped today',
+  'Growing in Chennai',
+  'A founder shipped today',
+  'Building in Kolkata',
+]
 
 function ActivityStream({ isHovered = false, isScrolling = false }: ActivityStreamProps) {
-  const { inView } = useSharedInView(); // Use shared observer
+  const { inView } = useSharedInView() // Use shared observer
 
   // Generate random positions and timing for activity messages - REDUCED COUNT
   const activityData = useMemo(() => {
-    const count = 3 + Math.floor(Math.random() * 2); // 3-4 messages (reduced from 5-7)
+    const count = 3 + Math.floor(Math.random() * 2) // 3-4 messages (reduced from 5-7)
     return Array.from({ length: count }, (_, i) => ({
       id: i,
       text: activityMessages[Math.floor(Math.random() * activityMessages.length)],
@@ -40,19 +40,19 @@ function ActivityStream({ isHovered = false, isScrolling = false }: ActivityStre
       delay: 3.2 + i * 0.5 + Math.random() * 0.5, // Better staggered start
       duration: 4.5 + Math.random() * 1.0, // 4.5-5.5s (smoother)
       initialDelay: i * 0.4, // Better stagger
-    }));
-  }, []);
+    }))
+  }, [])
 
   // Speed up slightly on hover
-  const floatSpeed = isHovered ? 0.85 : 1.0;
+  const floatSpeed = isHovered ? 0.85 : 1.0
 
   // Conditional rendering - don't render messages during scroll
   if (isScrolling) {
-    return null;
+    return null
   }
 
   return (
-    <div 
+    <div
       className="absolute inset-0 pointer-events-none overflow-hidden"
       style={{
         contain: 'layout style paint', // Scroll containment
@@ -60,25 +60,29 @@ function ActivityStream({ isHovered = false, isScrolling = false }: ActivityStre
         willChange: 'transform, opacity', // Keep constant
       }}
     >
-      {activityData.map((activity) => (
+      {activityData.map(activity => (
         <motion.div
           key={activity.id}
           className="absolute"
           style={{
             left: `${activity.x}%`,
             top: `${activity.y}%`,
-            transform: "translate3d(-50%, -50%, 0)", // Better GPU acceleration
+            transform: 'translate3d(-50%, -50%, 0)', // Better GPU acceleration
           }}
           initial={{ opacity: 0, y: 0, scale: 0.9 }}
-          animate={inView ? {
-            opacity: 0.8,
-            y: -40,
-            scale: 1,
-          } : { 
-            opacity: 0,
-            y: 0, 
-            scale: 0.9 
-          }}
+          animate={
+            inView
+              ? {
+                  opacity: 0.8,
+                  y: -40,
+                  scale: 1,
+                }
+              : {
+                  opacity: 0,
+                  y: 0,
+                  scale: 0.9,
+                }
+          }
           transition={{
             opacity: {
               duration: 0.4,
@@ -107,7 +111,7 @@ function ActivityStream({ isHovered = false, isScrolling = false }: ActivityStre
             },
           }}
         >
-          <div 
+          <div
             className="px-3 py-1.5 rounded-lg bg-black/80 border border-cyan-500/20 text-xs md:text-sm font-light text-cyan-300/90 whitespace-nowrap"
             style={{
               // Removed backdrop-filter entirely - too expensive
@@ -120,9 +124,8 @@ function ActivityStream({ isHovered = false, isScrolling = false }: ActivityStre
         </motion.div>
       ))}
     </div>
-  );
+  )
 }
 
 // Memoize to prevent re-renders when isHovered changes
-export default memo(ActivityStream);
-
+export default memo(ActivityStream)

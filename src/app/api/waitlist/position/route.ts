@@ -7,13 +7,13 @@ export async function GET(request: NextRequest) {
   try {
     // Require authentication
     const supabase = await createServerSupabaseClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Rate limiting: Max 30 requests per user per minute (prevent abuse)
@@ -44,10 +44,7 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (fetchError || !waitlistUser) {
-      return NextResponse.json(
-        { error: 'Waitlist entry not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Waitlist entry not found' }, { status: 404 })
     }
 
     // Use admin client to bypass RLS and count users before this user
@@ -62,10 +59,7 @@ export async function GET(request: NextRequest) {
       logError('Failed to calculate position', countError, {
         action: 'calculate_position',
       })
-      return NextResponse.json(
-        { error: 'Failed to calculate position' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to calculate position' }, { status: 500 })
     }
 
     // Position is number of users before + 1
@@ -81,10 +75,6 @@ export async function GET(request: NextRequest) {
     logError('Unexpected error calculating position', error, {
       action: 'calculate_position_unexpected',
     })
-    return NextResponse.json(
-      { error: 'Something went wrong' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }
-

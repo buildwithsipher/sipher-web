@@ -40,14 +40,13 @@ export function OnboardingScreen2({ onNext, onBack, domain, setDomain, user }: S
           className="text-center space-y-2"
         >
           <h2 className="text-2xl md:text-3xl font-light text-white">
-            ✦ Welcome{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name.split(' ')[0]}` : ''}
+            ✦ Welcome
+            {user?.user_metadata?.full_name
+              ? `, ${user.user_metadata.full_name.split(' ')[0]}`
+              : ''}
           </h2>
-          <p className="text-white/60 text-sm md:text-base">
-            Let's learn what you're building
-          </p>
-          <p className="text-white/50 text-sm mt-1">
-            1️⃣ What are you building?
-          </p>
+          <p className="text-white/60 text-sm md:text-base">Let's learn what you're building</p>
+          <p className="text-white/50 text-sm mt-1">1️⃣ What are you building?</p>
         </motion.div>
 
         {/* Domain Tiles */}
@@ -57,7 +56,7 @@ export function OnboardingScreen2({ onNext, onBack, domain, setDomain, user }: S
           transition={{ duration: 0.4, delay: 0.1 }}
           className="grid grid-cols-3 gap-3"
         >
-          {DOMAINS.map((item) => (
+          {DOMAINS.map(item => (
             <motion.button
               key={item.id}
               onClick={() => setDomain(item.id)}
@@ -70,9 +69,11 @@ export function OnboardingScreen2({ onNext, onBack, domain, setDomain, user }: S
               }`}
             >
               <div className="text-2xl mb-2">{item.icon}</div>
-              <div className={`text-sm font-medium ${
-                domain === item.id ? 'text-white' : 'text-white/70'
-              }`}>
+              <div
+                className={`text-sm font-medium ${
+                  domain === item.id ? 'text-white' : 'text-white/70'
+                }`}
+              >
                 {item.label}
               </div>
               {domain === item.id && (
@@ -119,4 +120,3 @@ export function OnboardingScreen2({ onNext, onBack, domain, setDomain, user }: S
     </motion.div>
   )
 }
-

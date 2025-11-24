@@ -1,9 +1,9 @@
 // src/app/(public)/page.tsx
-"use client";
+'use client'
 
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import Link from 'next/link'
+import { motion } from 'framer-motion'
+import { ArrowRight } from 'lucide-react'
 
 export default function LandingPage() {
   return (
@@ -16,7 +16,7 @@ export default function LandingPage() {
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
         className="px-6"
       >
         <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
@@ -24,8 +24,8 @@ export default function LandingPage() {
         </h1>
 
         <p className="mt-6 max-w-2xl mx-auto text-lg text-white/70">
-          Where founders prove <span className="text-white">execution</span>, not pedigree.  
-          Log your journey. Show progress. Earn credibility through proof.
+          Where founders prove <span className="text-white">execution</span>, not pedigree. Log your
+          journey. Show progress. Earn credibility through proof.
         </p>
 
         <div className="mt-10 flex justify-center">
@@ -47,10 +47,10 @@ export default function LandingPage() {
         className="absolute bottom-16 text-sm text-white/40"
       >
         <p>
-          50 founders will be selected for early access.  
+          50 founders will be selected for early access.
           <span className="text-white/70"> Applications close soon.</span>
         </p>
       </motion.div>
     </div>
-  );
+  )
 }

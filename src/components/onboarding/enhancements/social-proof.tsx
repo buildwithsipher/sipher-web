@@ -21,8 +21,8 @@ export function SocialProof() {
   useEffect(() => {
     // Fetch real stats from API
     fetch('/api/onboarding/stats')
-      .then((res) => res.json())
-      .then((data) => {
+      .then(res => res.json())
+      .then(data => {
         setStats(data)
         setLoading(false)
       })
@@ -73,4 +73,3 @@ export function SocialProof() {
     </motion.div>
   )
 }
-

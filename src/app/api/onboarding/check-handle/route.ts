@@ -13,23 +13,20 @@ export async function POST(request: NextRequest) {
   try {
     // Require authentication
     const supabase = await createServerSupabaseClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const { handle } = body
 
     if (!handle || typeof handle !== 'string') {
-      return NextResponse.json(
-        { error: 'Handle is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Handle is required' }, { status: 400 })
     }
 
     // Sanitize handle
@@ -40,9 +37,11 @@ export async function POST(request: NextRequest) {
       handleSchema.parse(sanitizedHandle)
     } catch (validationError: any) {
       return NextResponse.json(
-        { 
+        {
           error: 'Invalid handle format',
-          details: validationError.errors?.[0]?.message || 'Handle must be 3-20 characters, alphanumeric and underscores only'
+          details:
+            validationError.errors?.[0]?.message ||
+            'Handle must be 3-20 characters, alphanumeric and underscores only',
         },
         { status: 400 }
       )
@@ -93,10 +92,7 @@ export async function POST(request: NextRequest) {
         error: checkError.message,
         action: 'handle_check_error',
       })
-      return NextResponse.json(
-        { error: 'Failed to check handle availability' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to check handle availability' }, { status: 500 })
     }
 
     // Generic response to prevent enumeration
@@ -109,10 +105,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Handle check error:', error)
-    return NextResponse.json(
-      { error: 'Something went wrong' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }
-

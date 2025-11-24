@@ -17,10 +17,13 @@ export async function updateSession(request: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
-  
+
   // Strict-Transport-Security (HSTS) - only on HTTPS
   if (request.nextUrl.protocol === 'https:') {
-    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
+    response.headers.set(
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains; preload'
+    )
   }
 
   // Content-Security-Policy
@@ -36,7 +39,7 @@ export async function updateSession(request: NextRequest) {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "upgrade-insecure-requests",
+    'upgrade-insecure-requests',
   ].join('; ')
   response.headers.set('Content-Security-Policy', csp)
 
@@ -87,7 +90,9 @@ export async function updateSession(request: NextRequest) {
   )
 
   // Refresh session if expired
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   // Allow /admin without authentication (uses secret prompt instead)
   if (request.nextUrl.pathname.startsWith('/admin')) {
@@ -105,4 +110,3 @@ export async function updateSession(request: NextRequest) {
 
   return response
 }
-

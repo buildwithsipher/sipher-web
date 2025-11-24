@@ -19,7 +19,7 @@ function sanitizeContext(context: LogContext): LogContext {
     if (sensitiveFields.some(field => lowerKey.includes(field))) {
       sanitized[key] = '[REDACTED]'
     }
-    
+
     // Sanitize email addresses (keep domain visible)
     if (lowerKey.includes('email') && typeof sanitized[key] === 'string') {
       const email = sanitized[key] as string
@@ -79,54 +79,58 @@ export function logError(message: string, error?: unknown, context?: LogContext)
   // Send to Sentry in production
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
     // Client-side: use dynamic import to avoid bundling issues
-    import('@sentry/nextjs').then((Sentry) => {
-      if (error instanceof Error) {
-        Sentry.captureException(error, {
-          tags: {
-            errorType: 'client_error',
-          },
-          extra: {
-            message,
-            context: sanitizedContext,
-          },
-        })
-      } else {
-        Sentry.captureMessage(message, {
-          level: 'error',
-          extra: {
-            error: sanitizedError,
-            context: sanitizedContext,
-          },
-        })
-      }
-    }).catch(() => {
-      // Silently fail if Sentry is not available
-    })
+    import('@sentry/nextjs')
+      .then(Sentry => {
+        if (error instanceof Error) {
+          Sentry.captureException(error, {
+            tags: {
+              errorType: 'client_error',
+            },
+            extra: {
+              message,
+              context: sanitizedContext,
+            },
+          })
+        } else {
+          Sentry.captureMessage(message, {
+            level: 'error',
+            extra: {
+              error: sanitizedError,
+              context: sanitizedContext,
+            },
+          })
+        }
+      })
+      .catch(() => {
+        // Silently fail if Sentry is not available
+      })
   } else if (process.env.NODE_ENV === 'production') {
     // Server-side: use dynamic import
-    import('@sentry/nextjs').then((Sentry) => {
-      if (error instanceof Error) {
-        Sentry.captureException(error, {
-          tags: {
-            errorType: 'server_error',
-          },
-          extra: {
-            message,
-            context: sanitizedContext,
-          },
-        })
-      } else {
-        Sentry.captureMessage(message, {
-          level: 'error',
-          extra: {
-            error: sanitizedError,
-            context: sanitizedContext,
-          },
-        })
-      }
-    }).catch(() => {
-      // Silently fail if Sentry is not available
-    })
+    import('@sentry/nextjs')
+      .then(Sentry => {
+        if (error instanceof Error) {
+          Sentry.captureException(error, {
+            tags: {
+              errorType: 'server_error',
+            },
+            extra: {
+              message,
+              context: sanitizedContext,
+            },
+          })
+        } else {
+          Sentry.captureMessage(message, {
+            level: 'error',
+            extra: {
+              error: sanitizedError,
+              context: sanitizedContext,
+            },
+          })
+        }
+      })
+      .catch(() => {
+        // Silently fail if Sentry is not available
+      })
   }
 }
 
@@ -145,4 +149,3 @@ export function logInfo(message: string, context?: LogContext) {
   const sanitizedContext = context ? sanitizeContext(context) : undefined
   console.log(`[INFO] ${message}`, sanitizedContext)
 }
-

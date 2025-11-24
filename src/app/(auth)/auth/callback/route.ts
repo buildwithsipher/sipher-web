@@ -6,18 +6,17 @@ import { logWarn } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
   // Rate limiting: Max 20 OAuth callbacks per IP per hour
-  const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 
-                   request.headers.get('x-real-ip') || 
-                   'unknown'
+  const clientIp =
+    request.headers.get('x-forwarded-for')?.split(',')[0] ||
+    request.headers.get('x-real-ip') ||
+    'unknown'
   const rateLimit = checkRateLimit(`oauth-callback:${clientIp}`, 20, 60 * 60 * 1000)
   if (!rateLimit.allowed) {
     logWarn('OAuth callback rate limit exceeded', {
       ip: clientIp,
       action: 'oauth_callback_rate_limit',
     })
-    return NextResponse.redirect(
-      new URL('/?error=too-many-requests', request.url)
-    )
+    return NextResponse.redirect(new URL('/?error=too-many-requests', request.url))
   }
 
   const requestUrl = new URL(request.url)
@@ -29,15 +28,25 @@ export async function GET(request: NextRequest) {
   // Handle OAuth errors from Supabase
   if (error) {
     console.error('OAuth error:', error, errorDescription)
-    
+
     // If it's a database error saving new user, provide specific guidance
     if (error === 'server_error' && errorDescription?.includes('Database error saving new user')) {
-      const errorUrl = new URL('/?error=database-error&message=' + encodeURIComponent('Unable to create account. This is usually caused by Supabase email confirmation settings. Please contact support or try again later.'), request.url)
+      const errorUrl = new URL(
+        '/?error=database-error&message=' +
+          encodeURIComponent(
+            'Unable to create account. This is usually caused by Supabase email confirmation settings. Please contact support or try again later.'
+          ),
+        request.url
+      )
       return NextResponse.redirect(errorUrl)
     }
-    
+
     // Generic OAuth error
-    const errorUrl = new URL('/?error=auth-failed&message=' + encodeURIComponent(errorDescription || 'Authentication failed'), request.url)
+    const errorUrl = new URL(
+      '/?error=auth-failed&message=' +
+        encodeURIComponent(errorDescription || 'Authentication failed'),
+      request.url
+    )
     return NextResponse.redirect(errorUrl)
   }
 
@@ -103,13 +112,18 @@ export async function GET(request: NextRequest) {
 
         if (waitlistUser) {
           // Audit log OAuth login
-          auditLog('oauth_login', user.id, {
-            waitlistStatus: waitlistUser.status,
-            action: 'oauth_callback',
-          }, {
-            ip: clientIp,
-            userAgent: request.headers.get('user-agent') || undefined,
-          })
+          auditLog(
+            'oauth_login',
+            user.id,
+            {
+              waitlistStatus: waitlistUser.status,
+              action: 'oauth_callback',
+            },
+            {
+              ip: clientIp,
+              userAgent: request.headers.get('user-agent') || undefined,
+            }
+          )
 
           // Check user status
           if (waitlistUser.status === 'approved' || waitlistUser.status === 'activated') {
@@ -135,7 +149,7 @@ export async function GET(request: NextRequest) {
             response = NextResponse.redirect(dashboardUrl)
           }
           // Ensure all cookies are copied
-          request.cookies.getAll().forEach((cookie) => {
+          request.cookies.getAll().forEach(cookie => {
             response.cookies.set(cookie.name, cookie.value)
           })
           return response
@@ -146,7 +160,7 @@ export async function GET(request: NextRequest) {
       const onboardingUrl = new URL('/waitlist/onboarding', request.url)
       response = NextResponse.redirect(onboardingUrl)
       // Ensure all cookies are copied
-      request.cookies.getAll().forEach((cookie) => {
+      request.cookies.getAll().forEach(cookie => {
         response.cookies.set(cookie.name, cookie.value)
       })
       return response
@@ -161,4 +175,3 @@ export async function GET(request: NextRequest) {
   // No code parameter, redirect to home
   return NextResponse.redirect(new URL('/', request.url))
 }
-

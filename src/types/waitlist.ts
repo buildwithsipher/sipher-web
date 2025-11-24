@@ -29,4 +29,3 @@ export interface AdminApproveResponse {
   success: boolean
   message: string
 }
-

@@ -87,9 +87,7 @@ export function OnboardingScreen1({ onNext, user }: Screen1Props) {
           transition={{ duration: 0.4, delay: 0.4 }}
           className="space-y-4"
         >
-          <h1 className="text-3xl md:text-4xl font-light text-white">
-            👋 Join the Waitlist
-          </h1>
+          <h1 className="text-3xl md:text-4xl font-light text-white">👋 Join the Waitlist</h1>
         </motion.div>
 
         {/* Google Button */}
@@ -139,4 +137,3 @@ export function OnboardingScreen1({ onNext, user }: Screen1Props) {
     </motion.div>
   )
 }
-

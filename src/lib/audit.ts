@@ -93,4 +93,3 @@ export function auditLog(
   // In production, you might want to store these in a database
   // For now, they're logged via the logger utility
 }
-

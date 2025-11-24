@@ -19,16 +19,14 @@ export async function POST(request: NextRequest) {
         action: 'admin_approve_unauthorized',
         ip: request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown',
       })
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Rate limiting on admin endpoint (100 approvals per hour per IP)
-    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown'
+    const clientIp =
+      request.headers.get('x-forwarded-for')?.split(',')[0] ||
+      request.headers.get('x-real-ip') ||
+      'unknown'
     const rateLimit = checkRateLimit(`admin-approve:${clientIp}`, 100, 60 * 60 * 1000)
     if (!rateLimit.allowed) {
       logWarn('Admin approval rate limit exceeded', {
@@ -52,19 +50,13 @@ export async function POST(request: NextRequest) {
     const { userId } = await request.json()
 
     if (!userId || typeof userId !== 'string') {
-      return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
     // Validate UUID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(userId)) {
-      return NextResponse.json(
-        { error: 'Invalid user ID format' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid user ID format' }, { status: 400 })
     }
 
     const supabase = createAdminClient()
@@ -78,18 +70,12 @@ export async function POST(request: NextRequest) {
 
     if (fetchError || !user) {
       // Generic error (don't reveal if user exists)
-      return NextResponse.json(
-        { error: 'Invalid request' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
 
     if (user.status === 'approved' || user.status === 'activated') {
       // Generic error (don't reveal status)
-      return NextResponse.json(
-        { error: 'Invalid request' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
 
     // Generate cryptographically secure activation token
@@ -112,10 +98,7 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error('Update error:', updateError)
-      return NextResponse.json(
-        { error: 'Failed to approve user' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to approve user' }, { status: 500 })
     }
 
     // Generate magic link - token is NOT in URL, will be sent via POST
@@ -153,20 +136,22 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         action: 'email_send_failed',
       })
-      return NextResponse.json(
-        { error: 'User approved but email failed to send' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'User approved but email failed to send' }, { status: 500 })
     }
 
     // Audit log
-    auditLog('admin_approval', 'admin', {
-      approvedUserId: user.id,
-      action: 'user_approved',
-    }, {
-      ip: clientIp,
-      userAgent: request.headers.get('user-agent') || undefined,
-    })
+    auditLog(
+      'admin_approval',
+      'admin',
+      {
+        approvedUserId: user.id,
+        action: 'user_approved',
+      },
+      {
+        ip: clientIp,
+        userAgent: request.headers.get('user-agent') || undefined,
+      }
+    )
 
     return NextResponse.json({
       success: true,
@@ -176,10 +161,6 @@ export async function POST(request: NextRequest) {
     logError('Admin approval error', error, {
       action: 'admin_approve_error',
     })
-    return NextResponse.json(
-      { error: 'Something went wrong' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }
-

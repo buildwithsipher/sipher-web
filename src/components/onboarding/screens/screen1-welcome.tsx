@@ -43,7 +43,8 @@ export function OnboardingScreen1({ onNext, firstName }: Screen1Props) {
             Welcome, <span className="font-semibold text-[#7B5CFF]">{firstName}</span>.
           </h1>
           <p className="text-xl md:text-2xl text-white/60 font-light leading-relaxed max-w-xl mx-auto">
-            You're now part of the <span className="text-white font-medium">1% of founders</span> building with visible proof.
+            You're now part of the <span className="text-white font-medium">1% of founders</span>{' '}
+            building with visible proof.
           </p>
         </motion.div>
 
@@ -81,4 +82,3 @@ export function OnboardingScreen1({ onNext, firstName }: Screen1Props) {
     </motion.div>
   )
 }
-

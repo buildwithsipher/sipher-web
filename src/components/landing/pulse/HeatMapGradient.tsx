@@ -1,16 +1,16 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { memo } from "react";
-import { useSharedInView } from "./useSharedInView";
+import { motion } from 'framer-motion'
+import { memo } from 'react'
+import { useSharedInView } from './useSharedInView'
 
 interface HeatMapGradientProps {
-  isHovered?: boolean;
-  isScrolling?: boolean;
+  isHovered?: boolean
+  isScrolling?: boolean
 }
 
 function HeatMapGradient({ isHovered = false, isScrolling = false }: HeatMapGradientProps) {
-  const { inView } = useSharedInView(); // Use shared observer
+  const { inView } = useSharedInView() // Use shared observer
 
   // Heat map "hotspots" - REDUCED COUNT for better performance
   // These are subtle gradients that shift position over time
@@ -19,13 +19,13 @@ function HeatMapGradient({ isHovered = false, isScrolling = false }: HeatMapGrad
     { x: 50, y: 70, size: 160, intensity: 0.35 }, // Bangalore
     { x: 65, y: 28, size: 140, intensity: 0.3 }, // Delhi NCR
     // Removed 2 hotspots to reduce simultaneous blur effects
-  ];
+  ]
 
   // Intensity increases slightly on hover
-  const intensity = isHovered ? 1.15 : 1.0;
+  const intensity = isHovered ? 1.15 : 1.0
 
   return (
-    <div 
+    <div
       className="absolute inset-0 pointer-events-none overflow-hidden"
       style={{
         contain: 'layout style paint', // Scroll containment
@@ -40,7 +40,7 @@ function HeatMapGradient({ isHovered = false, isScrolling = false }: HeatMapGrad
           style={{
             left: `${spot.x}%`,
             top: `${spot.y}%`,
-            transform: "translate3d(-50%, -50%, 0)", // Better GPU acceleration
+            transform: 'translate3d(-50%, -50%, 0)', // Better GPU acceleration
             width: `${spot.size}px`,
             height: `${spot.size}px`,
             // Replace blur with solid gradient during scroll - blur only when not scrolling
@@ -52,9 +52,13 @@ function HeatMapGradient({ isHovered = false, isScrolling = false }: HeatMapGrad
             isolation: 'isolate', // Create stacking context
             display: isScrolling ? 'none' : 'block', // Hide completely during scroll
           }}
-          animate={inView && !isScrolling ? {
-            opacity: [0.2, 0.4, 0.2],
-          } : { opacity: 0.2 }}
+          animate={
+            inView && !isScrolling
+              ? {
+                  opacity: [0.2, 0.4, 0.2],
+                }
+              : { opacity: 0.2 }
+          }
           transition={{
             duration: 8 + index * 1,
             delay: isScrolling ? 0 : 2.0 + index * 1,
@@ -64,9 +68,8 @@ function HeatMapGradient({ isHovered = false, isScrolling = false }: HeatMapGrad
         />
       ))}
     </div>
-  );
+  )
 }
 
 // Memoize to prevent re-renders
-export default memo(HeatMapGradient);
-
+export default memo(HeatMapGradient)

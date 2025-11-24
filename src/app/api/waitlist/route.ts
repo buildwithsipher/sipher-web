@@ -12,29 +12,66 @@ import { sanitizeName, sanitizeText, sanitizeUrl, sanitizeTagline } from '@/lib/
 
 const waitlistSchema = z.object({
   email: z.string().email('Invalid email address').toLowerCase().trim(),
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be 100 characters or less'),
-  startupName: z.string().min(1, 'Startup name is required').max(100, 'Startup name must be 100 characters or less'),
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must be 100 characters or less'),
+  startupName: z
+    .string()
+    .min(1, 'Startup name is required')
+    .max(100, 'Startup name must be 100 characters or less'),
   startupStage: z.enum(['idea', 'mvp', 'launched', 'revenue', 'scaling']),
-  linkedinUrl: z.union([
-    z.string().url('Invalid LinkedIn URL').max(2048, 'URL must be 2048 characters or less'),
-    z.literal(''),
-  ]).optional(),
+  linkedinUrl: z
+    .union([
+      z.string().url('Invalid LinkedIn URL').max(2048, 'URL must be 2048 characters or less'),
+      z.literal(''),
+    ])
+    .optional(),
   city: z.string().min(1, 'City is required').max(100, 'City must be 100 characters or less'),
   whatBuilding: z.string().max(500, 'Description must be 500 characters or less').optional(),
-  websiteUrl: z.string().url('Invalid website URL').max(2048, 'URL must be 2048 characters or less').optional().or(z.literal('')),
-  referralCode: z.string().regex(/^[A-Z0-9]{8}$/, 'Invalid referral code format').optional(),
+  websiteUrl: z
+    .string()
+    .url('Invalid website URL')
+    .max(2048, 'URL must be 2048 characters or less')
+    .optional()
+    .or(z.literal('')),
+  referralCode: z
+    .string()
+    .regex(/^[A-Z0-9]{8}$/, 'Invalid referral code format')
+    .optional(),
 })
+
+// Handle unsupported methods
+export async function GET() {
+  return NextResponse.json(
+    { error: 'Method not allowed. Use POST to join the waitlist.' },
+    { status: 405 }
+  )
+}
 
 export async function POST(request: NextRequest) {
   let body: any = null
   try {
-    body = await request.json()
+    // Check content type
+    const contentType = request.headers.get('content-type')
+    if (!contentType || !contentType.includes('application/json')) {
+      return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 406 })
+    }
+
+    // Parse request body
+    try {
+      body = await request.json()
+    } catch (parseError) {
+      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
+    }
+
     const data = waitlistSchema.parse(body)
 
     // Rate limiting: Max 5 signups per IP per hour (prevent spam/abuse)
-    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown'
+    const clientIp =
+      request.headers.get('x-forwarded-for')?.split(',')[0] ||
+      request.headers.get('x-real-ip') ||
+      'unknown'
     const rateLimit = checkRateLimit(`signup:${clientIp}`, 5, 60 * 60 * 1000) // 5 requests per hour per IP
     if (!rateLimit.allowed) {
       return NextResponse.json(
@@ -86,7 +123,7 @@ export async function POST(request: NextRequest) {
         email: sanitizedData.email.substring(0, 3) + '***',
         action: 'duplicate_signup_attempt',
       })
-      
+
       // Return generic success message (don't reveal email exists)
       return NextResponse.json({
         success: true,
@@ -155,14 +192,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Audit log successful signup
-    auditLog('waitlist_signup', 'unknown', {
-      userId: newUser.id,
-      hasReferral: !!referredBy,
-      action: 'waitlist_signup_success',
-    }, {
-      ip: clientIp,
-      userAgent: request.headers.get('user-agent') || undefined,
-    })
+    auditLog(
+      'waitlist_signup',
+      'unknown',
+      {
+        userId: newUser.id,
+        hasReferral: !!referredBy,
+        action: 'waitlist_signup_success',
+      },
+      {
+        ip: clientIp,
+        userAgent: request.headers.get('user-agent') || undefined,
+      }
+    )
 
     // Get position in waitlist
     const { count, error: countError } = await supabase
@@ -226,17 +268,13 @@ export async function POST(request: NextRequest) {
         },
       })
     }
-    
+
     logError('Waitlist signup error', error, {
       action: 'waitlist_signup',
       hasBody: !!body,
     })
-    
+
     const errorMessage = error instanceof Error ? error.message : 'Something went wrong'
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }
-

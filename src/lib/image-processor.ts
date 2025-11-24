@@ -27,7 +27,7 @@ export async function processImage(
     const metadata = await image.metadata()
 
     // Determine if resize is needed
-    const needsResize = 
+    const needsResize =
       (metadata.width && metadata.width > maxWidth) ||
       (metadata.height && metadata.height > maxHeight)
 
@@ -69,4 +69,3 @@ export function getOptimalFormat(originalFormat?: string): 'jpeg' | 'png' | 'web
   }
   return 'webp' // Use WebP for better compression
 }
-

@@ -21,42 +21,55 @@ const DOMAINS = [
 ]
 
 const STAGES = [
-  { 
-    id: 'idea', 
-    label: 'Idea Stage', 
+  {
+    id: 'idea',
+    label: 'Idea Stage',
     description: 'Just starting, validating, exploring',
-    icon: '🔥'
+    icon: '🔥',
   },
-  { 
-    id: 'mvp', 
-    label: 'Building MVP', 
+  {
+    id: 'mvp',
+    label: 'Building MVP',
     description: 'Actively shipping core product',
-    icon: '🚀'
+    icon: '🚀',
   },
-  { 
-    id: 'launched', 
-    label: 'Launched', 
+  {
+    id: 'launched',
+    label: 'Launched',
     description: 'Product live, early users',
-    icon: '⚡'
+    icon: '⚡',
   },
-  { 
-    id: 'revenue', 
-    label: 'Early Revenue', 
+  {
+    id: 'revenue',
+    label: 'Early Revenue',
     description: 'Paying users/traction',
-    icon: '💰'
+    icon: '💰',
   },
-  { 
-    id: 'scaling', 
-    label: 'Scaling', 
+  {
+    id: 'scaling',
+    label: 'Scaling',
     description: 'Growth engine, team expansion',
-    icon: '📈'
+    icon: '📈',
   },
 ]
 
 const TOP_CITIES = [
-  'Mumbai', 'Bangalore', 'Delhi', 'Hyderabad', 'Chennai',
-  'Pune', 'Kolkata', 'Ahmedabad', 'Jaipur', 'Surat',
-  'Lucknow', 'Kanpur', 'Nagpur', 'Indore', 'Thane', 'Other'
+  'Mumbai',
+  'Bangalore',
+  'Delhi',
+  'Hyderabad',
+  'Chennai',
+  'Pune',
+  'Kolkata',
+  'Ahmedabad',
+  'Jaipur',
+  'Surat',
+  'Lucknow',
+  'Kanpur',
+  'Nagpur',
+  'Indore',
+  'Thane',
+  'Other',
 ]
 
 export default function MinimalOnboarding() {
@@ -65,13 +78,14 @@ export default function MinimalOnboarding() {
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [waitlistCount, setWaitlistCount] = useState(0)
-  
+
   const [formData, setFormData] = useState({
     domain: '',
     stage: '',
     name: '',
     startupName: '',
     city: '',
+    linkedinUrl: '',
   })
 
   // Track form start
@@ -99,8 +113,10 @@ export default function MinimalOnboarding() {
   useEffect(() => {
     async function checkUser() {
       const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
       if (session?.user) {
         setUser(session.user)
         // Pre-fill name from Google
@@ -113,7 +129,7 @@ export default function MinimalOnboarding() {
           .select('id')
           .eq('email', session.user.email)
           .single()
-        
+
         if (existing) {
           router.push('/waitlist/dashboard')
           return
@@ -155,7 +171,7 @@ export default function MinimalOnboarding() {
       setStep('domain')
     } else if (step === 'domain') {
       if (!formData.domain) {
-        toast.error('Please select what you\'re building')
+        toast.error("Please select what you're building")
         return
       }
       setStep('stage')
@@ -176,11 +192,22 @@ export default function MinimalOnboarding() {
       return
     }
 
+    if (formData.linkedinUrl?.trim()) {
+      try {
+        new URL(formData.linkedinUrl.trim())
+      } catch {
+        toast.error('Please enter a valid LinkedIn URL (including https://)')
+        return
+      }
+    }
+
     setLoading(true)
 
     try {
       const supabase = createClient()
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser()
 
       if (!currentUser) {
         toast.error('Please sign in first')
@@ -197,15 +224,26 @@ export default function MinimalOnboarding() {
           startupName: formData.startupName,
           startupStage: formData.stage,
           city: formData.city,
-          linkedinUrl: '',
+          linkedinUrl: formData.linkedinUrl?.trim() || '',
           websiteUrl: '',
         }),
       })
 
-      const result = await response.json()
+      // Safely parse JSON response
+      let result: any = {}
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          const text = await response.text()
+          result = text ? JSON.parse(text) : {}
+        } catch (parseError) {
+          console.error('Failed to parse JSON response:', parseError)
+          throw new Error('Invalid response from server')
+        }
+      }
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to join waitlist')
+        throw new Error(result.error || `Failed to join waitlist (${response.status})`)
       }
 
       // Track successful signup
@@ -245,21 +283,18 @@ export default function MinimalOnboarding() {
             >
               <div className="space-y-4">
                 <Logo size="large" />
-                <p className="text-white/60 text-sm">
-                  "Where founders turn execution → proof"
-                </p>
+                <p className="text-white/60 text-sm">"Where founders turn execution → proof"</p>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20">
                   <span className="text-xs text-purple-400">
-                    {displayedCount > 100 ? `${displayedCount.toLocaleString()}+` : '100+'} founders are building already
+                    {displayedCount > 100 ? `${displayedCount.toLocaleString()}+` : '100+'} founders
+                    are building already
                   </span>
                 </div>
               </div>
 
               <div className="space-y-6 pt-8">
                 <div>
-                  <h1 className="text-2xl font-light text-white mb-2">
-                    👋 Join the Waitlist
-                  </h1>
+                  <h1 className="text-2xl font-light text-white mb-2">👋 Join the Waitlist</h1>
                 </div>
 
                 <motion.button
@@ -277,25 +312,39 @@ export default function MinimalOnboarding() {
                   ) : (
                     <>
                       <svg className="w-5 h-5" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        <path
+                          fill="#4285F4"
+                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        />
+                        <path
+                          fill="#34A853"
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        />
+                        <path
+                          fill="#FBBC05"
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        />
+                        <path
+                          fill="#EA4335"
+                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        />
                       </svg>
                       <span>Continue with Google</span>
                     </>
                   )}
                 </motion.button>
 
-                <p className="text-xs text-white/40">
-                  No spam. 1-click. Takes 5 seconds.
-                </p>
+                <p className="text-xs text-white/40">No spam. 1-click. Takes 5 seconds.</p>
               </div>
 
               <div className="pt-8 text-xs text-white/30 space-x-4">
-                <a href="/privacy" className="hover:text-white/50 transition-colors">Privacy</a>
+                <a href="/privacy" className="hover:text-white/50 transition-colors">
+                  Privacy
+                </a>
                 <span>•</span>
-                <a href="/terms" className="hover:text-white/50 transition-colors">Terms</a>
+                <a href="/terms" className="hover:text-white/50 transition-colors">
+                  Terms
+                </a>
               </div>
             </motion.div>
           )}
@@ -318,7 +367,10 @@ export default function MinimalOnboarding() {
 
               <div>
                 <h1 className="text-2xl font-light text-white mb-1">
-                  ✦ Welcome{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name.split(' ')[0]}` : ''}
+                  ✦ Welcome
+                  {user?.user_metadata?.full_name
+                    ? `, ${user.user_metadata.full_name.split(' ')[0]}`
+                    : ''}
                 </h1>
                 <p className="text-white/60 text-sm">Let's learn what you're building.</p>
               </div>
@@ -326,7 +378,7 @@ export default function MinimalOnboarding() {
               <div>
                 <p className="text-sm text-white/80 mb-4">1️⃣ What are you building?</p>
                 <div className="grid grid-cols-2 gap-3">
-                  {DOMAINS.map((domain) => (
+                  {DOMAINS.map(domain => (
                     <motion.button
                       key={domain.id}
                       onClick={() => setFormData(prev => ({ ...prev, domain: domain.id }))}
@@ -378,7 +430,7 @@ export default function MinimalOnboarding() {
                   Where are you in the journey?
                 </h2>
                 <div className="space-y-3">
-                  {STAGES.map((stage) => (
+                  {STAGES.map(stage => (
                     <motion.button
                       key={stage.id}
                       onClick={() => setFormData(prev => ({ ...prev, stage: stage.id }))}
@@ -393,12 +445,8 @@ export default function MinimalOnboarding() {
                       <div className="flex items-start gap-3">
                         <span className="text-xl">{stage.icon}</span>
                         <div className="flex-1">
-                          <div className="text-base font-medium text-white mb-1">
-                            {stage.label}
-                          </div>
-                          <div className="text-xs text-white/60">
-                            {stage.description}
-                          </div>
+                          <div className="text-base font-medium text-white mb-1">{stage.label}</div>
+                          <div className="text-xs text-white/60">{stage.description}</div>
                         </div>
                       </div>
                     </motion.button>
@@ -456,7 +504,7 @@ export default function MinimalOnboarding() {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-purple-400 transition-colors"
                     placeholder="Srideep Goud"
                   />
@@ -467,7 +515,7 @@ export default function MinimalOnboarding() {
                   <input
                     type="text"
                     value={formData.startupName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, startupName: e.target.value }))}
+                    onChange={e => setFormData(prev => ({ ...prev, startupName: e.target.value }))}
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-purple-400 transition-colors"
                     placeholder="Sipher"
                   />
@@ -477,16 +525,36 @@ export default function MinimalOnboarding() {
                   <label className="block text-sm text-white/60 mb-2">City</label>
                   <select
                     value={formData.city}
-                    onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                    onChange={e => setFormData(prev => ({ ...prev, city: e.target.value }))}
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-400 transition-colors"
                   >
-                    <option value="" className="bg-[#0D0D0D]">Select city</option>
-                    {TOP_CITIES.map((city) => (
+                    <option value="" className="bg-[#0D0D0D]">
+                      Select city
+                    </option>
+                    {TOP_CITIES.map(city => (
                       <option key={city} value={city} className="bg-[#0D0D0D]">
                         {city}
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-white/60 mb-2">
+                    LinkedIn URL <span className="text-white/40">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="url"
+                    autoComplete="url"
+                    value={formData.linkedinUrl}
+                    onChange={e => setFormData(prev => ({ ...prev, linkedinUrl: e.target.value }))}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-purple-400 transition-colors"
+                    placeholder="https://www.linkedin.com/in/you"
+                  />
+                  <p className="text-xs text-white/40 mt-1">
+                    Optional, but helps us and other founders know you better.
+                  </p>
                 </div>
               </div>
 
@@ -503,8 +571,14 @@ export default function MinimalOnboarding() {
                   onClick={handleNext}
                   disabled={loading || !formData.name || !formData.startupName || !formData.city}
                   className="flex-1 px-6 py-4 bg-white text-[#0D0D0D] rounded-xl font-medium hover:bg-gray-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  whileHover={{ scale: !loading && formData.name && formData.startupName && formData.city ? 1.02 : 1 }}
-                  whileTap={{ scale: !loading && formData.name && formData.startupName && formData.city ? 0.98 : 1 }}
+                  whileHover={{
+                    scale:
+                      !loading && formData.name && formData.startupName && formData.city ? 1.02 : 1,
+                  }}
+                  whileTap={{
+                    scale:
+                      !loading && formData.name && formData.startupName && formData.city ? 0.98 : 1,
+                  }}
                 >
                   {loading ? 'Submitting...' : 'Finish →'}
                 </motion.button>
@@ -560,4 +634,3 @@ export default function MinimalOnboarding() {
     </div>
   )
 }
-

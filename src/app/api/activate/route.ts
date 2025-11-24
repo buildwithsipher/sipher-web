@@ -12,9 +12,10 @@ import { logError, logWarn } from '@/lib/logger'
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting: Max 5 activation attempts per IP per hour
-    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown'
+    const clientIp =
+      request.headers.get('x-forwarded-for')?.split(',')[0] ||
+      request.headers.get('x-real-ip') ||
+      'unknown'
     const rateLimit = checkRateLimit(`activate:${clientIp}`, 5, 60 * 60 * 1000)
     if (!rateLimit.allowed) {
       logWarn('Activation rate limit exceeded', {
@@ -39,10 +40,7 @@ export async function POST(request: NextRequest) {
 
     if (!token || typeof token !== 'string') {
       // Generic error (don't reveal what's wrong)
-      return NextResponse.json(
-        { error: 'Invalid activation request' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid activation request' }, { status: 400 })
     }
 
     const supabase = createAdminClient()
@@ -57,31 +55,35 @@ export async function POST(request: NextRequest) {
 
     if (error || !user) {
       // Generic error (don't reveal if token is invalid or expired)
-      auditLog('activation_failed', 'unknown', {
-        reason: 'invalid_token',
-        action: 'activation_attempt',
-      }, {
-        ip: clientIp,
-      })
-      return NextResponse.json(
-        { error: 'Invalid or expired activation token' },
-        { status: 400 }
+      auditLog(
+        'activation_failed',
+        'unknown',
+        {
+          reason: 'invalid_token',
+          action: 'activation_attempt',
+        },
+        {
+          ip: clientIp,
+        }
       )
+      return NextResponse.json({ error: 'Invalid or expired activation token' }, { status: 400 })
     }
 
     // Check expiration
     if (new Date(user.activation_token_expires_at) < new Date()) {
-      auditLog('activation_failed', 'unknown', {
-        reason: 'expired_token',
-        userId: user.id,
-        action: 'activation_attempt',
-      }, {
-        ip: clientIp,
-      })
-      return NextResponse.json(
-        { error: 'Invalid or expired activation token' },
-        { status: 400 }
+      auditLog(
+        'activation_failed',
+        'unknown',
+        {
+          reason: 'expired_token',
+          userId: user.id,
+          action: 'activation_attempt',
+        },
+        {
+          ip: clientIp,
+        }
       )
+      return NextResponse.json({ error: 'Invalid or expired activation token' }, { status: 400 })
     }
 
     // Check if already activated
@@ -133,10 +135,7 @@ export async function POST(request: NextRequest) {
 
     if (checkUser?.activation_token !== null) {
       // Token was already used
-      return NextResponse.json(
-        { error: 'Activation token has already been used' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Activation token has already been used' }, { status: 400 })
     }
 
     // Create auth user (passwordless - no temp password)
@@ -156,10 +155,7 @@ export async function POST(request: NextRequest) {
         action: 'auth_creation_failed',
       })
       // Restore token on failure
-      await supabase
-        .from('waitlist_users')
-        .update({ activation_token: token })
-        .eq('id', user.id)
+      await supabase.from('waitlist_users').update({ activation_token: token }).eq('id', user.id)
       return NextResponse.json(
         { error: 'Activation failed. Please try again or contact support.' },
         { status: 500 }
@@ -167,9 +163,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create profile (use upsert to handle race condition)
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert({
+    const { error: profileError } = await supabase.from('profiles').upsert(
+      {
         id: authData.user.id,
         waitlist_user_id: user.id,
         email: user.email,
@@ -177,9 +172,11 @@ export async function POST(request: NextRequest) {
         startup_name: user.startup_name,
         startup_stage: user.startup_stage,
         linkedin_url: user.linkedin_url,
-      }, {
+      },
+      {
         onConflict: 'id',
-      })
+      }
+    )
 
     if (profileError) {
       logError('Profile creation error', profileError, {
@@ -221,12 +218,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Audit log successful activation
-    auditLog('user_activated', user.id, {
-      action: 'activation_success',
-    }, {
-      ip: clientIp,
-      userAgent: request.headers.get('user-agent') || undefined,
-    })
+    auditLog(
+      'user_activated',
+      user.id,
+      {
+        action: 'activation_success',
+      },
+      {
+        ip: clientIp,
+        userAgent: request.headers.get('user-agent') || undefined,
+      }
+    )
 
     return NextResponse.json({
       success: true,
@@ -237,10 +239,6 @@ export async function POST(request: NextRequest) {
     logError('Activation error', error, {
       action: 'activation_unexpected_error',
     })
-    return NextResponse.json(
-      { error: 'Something went wrong' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }
-

@@ -37,4 +37,3 @@ export const trackCTAClick = (ctaName: string, location?: string) => {
     location: location || 'unknown',
   })
 }
-

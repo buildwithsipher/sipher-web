@@ -9,13 +9,13 @@ export async function POST(request: NextRequest) {
   try {
     // Require authentication
     const supabase = await createServerSupabaseClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Rate limiting: Max 10 uploads per user per hour
@@ -45,27 +45,18 @@ export async function POST(request: NextRequest) {
     const userId = formData.get('userId') as string
 
     if (!file || !type || !userId) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
     // Validate type parameter (security: prevent path manipulation)
     if (type !== 'profile' && type !== 'logo') {
-      return NextResponse.json(
-        { error: 'Invalid upload type' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid upload type' }, { status: 400 })
     }
 
     // Validate userId is a valid UUID format (security: prevent path manipulation)
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(userId)) {
-      return NextResponse.json(
-        { error: 'Invalid user ID' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 })
     }
 
     // Verify user owns this profile (before processing)
@@ -76,10 +67,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (!waitlistUser || waitlistUser.email !== user.email) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
     // Validate file type (MIME type)
@@ -112,24 +100,32 @@ export async function POST(request: NextRequest) {
 
     // Validate file is not empty
     if (file.size === 0) {
-      return NextResponse.json(
-        { error: 'File is empty' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'File is empty' }, { status: 400 })
     }
 
     // Basic image validation: Check file magic bytes (first few bytes)
     // This helps prevent MIME type spoofing
     const arrayBuffer = await file.arrayBuffer()
     const uint8Array = new Uint8Array(arrayBuffer.slice(0, 12))
-    
+
     // JPEG: FF D8 FF
     // PNG: 89 50 4E 47 0D 0A 1A 0A
     // WebP: RIFF ... WEBP
-    const isJPEG = uint8Array[0] === 0xFF && uint8Array[1] === 0xD8 && uint8Array[2] === 0xFF
-    const isPNG = uint8Array[0] === 0x89 && uint8Array[1] === 0x50 && uint8Array[2] === 0x4E && uint8Array[3] === 0x47
-    const isWebP = uint8Array[0] === 0x52 && uint8Array[1] === 0x49 && uint8Array[2] === 0x46 && uint8Array[3] === 0x46 &&
-                   uint8Array[8] === 0x57 && uint8Array[9] === 0x45 && uint8Array[10] === 0x42 && uint8Array[11] === 0x50
+    const isJPEG = uint8Array[0] === 0xff && uint8Array[1] === 0xd8 && uint8Array[2] === 0xff
+    const isPNG =
+      uint8Array[0] === 0x89 &&
+      uint8Array[1] === 0x50 &&
+      uint8Array[2] === 0x4e &&
+      uint8Array[3] === 0x47
+    const isWebP =
+      uint8Array[0] === 0x52 &&
+      uint8Array[1] === 0x49 &&
+      uint8Array[2] === 0x46 &&
+      uint8Array[3] === 0x46 &&
+      uint8Array[8] === 0x57 &&
+      uint8Array[9] === 0x45 &&
+      uint8Array[10] === 0x42 &&
+      uint8Array[11] === 0x50
 
     if (!isJPEG && !isPNG && !isWebP) {
       return NextResponse.json(
@@ -160,11 +156,9 @@ export async function POST(request: NextRequest) {
 
     try {
       const imageBuffer = Buffer.from(arrayBuffer)
-      
+
       // Determine optimal format
-      optimalFormat = getOptimalFormat(
-        isPNG ? 'png' : isJPEG ? 'jpeg' : 'webp'
-      )
+      optimalFormat = getOptimalFormat(isPNG ? 'png' : isJPEG ? 'jpeg' : 'webp')
 
       // Process image based on type
       if (type === 'profile') {
@@ -228,7 +222,7 @@ export async function POST(request: NextRequest) {
         type,
         action: 'file_upload',
       })
-      
+
       // Provide more specific error message
       let errorMessage = 'Failed to upload file'
       if (uploadError.message) {
@@ -242,24 +236,19 @@ export async function POST(request: NextRequest) {
           errorMessage = uploadError.message
         }
       }
-      
-      return NextResponse.json(
-        { error: errorMessage },
-        { status: 500 }
-      )
+
+      return NextResponse.json({ error: errorMessage }, { status: 500 })
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('waitlist-assets')
-      .getPublicUrl(filePath)
+    const { data: urlData } = supabase.storage.from('waitlist-assets').getPublicUrl(filePath)
 
     const publicUrl = urlData.publicUrl
 
     // Update database with new URL
     const adminSupabase = createAdminClient()
     const updateField = type === 'profile' ? 'profile_picture_url' : 'startup_logo_url'
-    
+
     // Get old file URL before updating
     const { data: oldUser } = await adminSupabase
       .from('waitlist_users')
@@ -299,10 +288,7 @@ export async function POST(request: NextRequest) {
         type,
         action: 'profile_update',
       })
-      return NextResponse.json(
-        { error: 'Failed to update profile' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
     }
 
     return NextResponse.json({
@@ -315,9 +301,6 @@ export async function POST(request: NextRequest) {
     logError('Unexpected upload error', error, {
       action: 'file_upload_unexpected',
     })
-    return NextResponse.json(
-      { error: 'Something went wrong' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }

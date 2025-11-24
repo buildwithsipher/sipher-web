@@ -1,93 +1,70 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import BeforeAfterSipher from "@/components/landing/proof/before-after-sipher";
-import SipherAsterisk from "@/components/ui/SipherAsterisk";
+import { motion } from 'framer-motion'
+import BeforeAfterSipher from '@/components/landing/proof/before-after-sipher'
+import SipherAsterisk from '@/components/ui/SipherAsterisk'
 
 interface ProofCardProps {
-  category: string;
-  bullets: string[];
-  momentum: string;
-  score: string;
+  category: string
+  bullets: string[]
+  momentum: string
+  score: string
 }
 
 export default function ProofCardSection() {
   const proofCards: ProofCardProps[] = [
     {
-      category: "Product Work",
-      bullets: [
-        "Shipped onboarding revamp",
-        "Fixed checkout flow",
-        "Improved load speed",
-      ],
-      momentum: "+14%",
-      score: "82/100",
+      category: 'Product Work',
+      bullets: ['Shipped onboarding revamp', 'Fixed checkout flow', 'Improved load speed'],
+      momentum: '+14%',
+      score: '82/100',
     },
     {
-      category: "Customer Growth",
-      bullets: [
-        "Closed 3 new customers",
-        "Ran 12 user interviews",
-        "Responded to 27 tickets",
-      ],
-      momentum: "+10%",
-      score: "78/100",
+      category: 'Customer Growth',
+      bullets: ['Closed 3 new customers', 'Ran 12 user interviews', 'Responded to 27 tickets'],
+      momentum: '+10%',
+      score: '78/100',
     },
     {
-      category: "Business Execution",
-      bullets: [
-        "Drafted pricing v2",
-        "Built outreach list (22 leads)",
-        "Refined ICP insights",
-      ],
-      momentum: "+9%",
-      score: "80/100",
+      category: 'Business Execution',
+      bullets: ['Drafted pricing v2', 'Built outreach list (22 leads)', 'Refined ICP insights'],
+      momentum: '+9%',
+      score: '80/100',
     },
     {
-      category: "Momentum Metrics",
-      bullets: [
-        "+14% weekly activation",
-        "MRR ↑ ₹18K",
-        "Retention 62% → 71%",
-      ],
-      momentum: "Stable",
-      score: "84/100",
+      category: 'Momentum Metrics',
+      bullets: ['+14% weekly activation', 'MRR ↑ ₹18K', 'Retention 62% → 71%'],
+      momentum: 'Stable',
+      score: '84/100',
     },
     {
-      category: "Founder Journey",
-      bullets: [
-        "7-day streak",
-        "23 logged actions",
-        "3 weekly milestones hit",
-      ],
-      momentum: "High",
-      score: "82/100",
+      category: 'Founder Journey',
+      bullets: ['7-day streak', '23 logged actions', '3 weekly milestones hit'],
+      momentum: 'High',
+      score: '82/100',
     },
     {
-      category: "Content & Community",
+      category: 'Content & Community',
       bullets: [
-        "Recorded feature demo",
-        "Published launch trailer",
-        "Hosted feedback call with 14 users",
+        'Recorded feature demo',
+        'Published launch trailer',
+        'Hosted feedback call with 14 users',
       ],
-      momentum: "Growing",
-      score: "79/100",
+      momentum: 'Growing',
+      score: '79/100',
     },
-  ];
+  ]
 
   return (
     <section className="py-24">
-
       {/* ========================================= */}
       {/* HEADER NARRATION */}
       {/* ========================================= */}
       <div className="text-center mb-16 px-4 sm:px-6">
-        <h2 className="text-4xl md:text-5xl font-black text-white">
-          See The Proof
-        </h2>
+        <h2 className="text-4xl md:text-5xl font-black text-white">See The Proof</h2>
         <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-          Visualize how your daily execution becomes your credential — whether you're
-          building SaaS, D2C, AI, services, or community-led startups.
+          Visualize how your daily execution becomes your credential — whether you're building SaaS,
+          D2C, AI, services, or community-led startups.
         </p>
       </div>
 
@@ -100,7 +77,8 @@ export default function ProofCardSection() {
             Founder Execution Profiles (Preview)
           </h3>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-            Anonymous previews of how founders log execution on Sipher — universal, non-technical, not real user data.
+            Anonymous previews of how founders log execution on Sipher — universal, non-technical,
+            not real user data.
           </p>
         </div>
 
@@ -129,9 +107,7 @@ export default function ProofCardSection() {
       {/* ========================================= */}
 
       <div className="mt-24 text-center px-4 sm:px-6">
-        <h3 className="text-3xl md:text-4xl font-bold text-white">
-          Your ProofCard
-        </h3>
+        <h3 className="text-3xl md:text-4xl font-bold text-white">Your ProofCard</h3>
         <p className="mt-2 text-muted-foreground">
           A real-time score generated automatically from your execution logs.
         </p>
@@ -139,7 +115,6 @@ export default function ProofCardSection() {
 
       <div className="mt-12 max-w-4xl mx-auto bg-white/5 p-8 rounded-2xl border border-white/10 backdrop-blur-sm shadow-lg px-4 sm:px-6">
         <div className="flex flex-col md:flex-row justify-between items-center">
-
           <div className="text-center md:text-left mb-8 md:mb-0">
             <div className="text-6xl font-black text-purple-400">85/100</div>
             <div className="mt-2 text-muted-foreground">Execution Score</div>
@@ -150,7 +125,6 @@ export default function ProofCardSection() {
             <Metric label="Velocity" value="91" />
             <Metric label="Engagement" value="78" />
           </div>
-
         </div>
       </div>
 
@@ -177,34 +151,38 @@ export default function ProofCardSection() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
+        viewport={{ once: true, margin: '-100px' }}
         transition={{ duration: 0.6 }}
         className="mt-16 text-center"
       >
         <div className="flex flex-col items-center gap-4">
           <button
             onClick={() => {
-              window.dispatchEvent(new CustomEvent('openWaitlist'));
+              window.dispatchEvent(new CustomEvent('openWaitlist'))
             }}
             className="px-6 py-3 bg-white text-[#0b0b0c] text-sm font-semibold rounded-lg transition-all duration-300 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50"
             aria-label="Start tracking your execution by joining the waitlist"
           >
             Start Tracking Your Execution
           </button>
-          <p className="text-xs text-white/40">
-            247+ founders already building their ProofCard
-          </p>
+          <p className="text-xs text-white/40">247+ founders already building their ProofCard</p>
         </div>
       </motion.div>
     </section>
-  );
+  )
 }
 
 /* ============================== */
 /* PROOF CARD COMPONENT           */
 /* ============================== */
 
-function ProofCard({ category, bullets, momentum, score, index }: ProofCardProps & { index: number }) {
+function ProofCard({
+  category,
+  bullets,
+  momentum,
+  score,
+  index,
+}: ProofCardProps & { index: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -213,12 +191,12 @@ function ProofCard({ category, bullets, momentum, score, index }: ProofCardProps
       transition={{ delay: index * 0.1, duration: 0.5 }}
       className="relative rounded-2xl bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl overflow-hidden group"
       whileHover={{
-        boxShadow: "0 0 20px rgba(120, 80, 255, 0.15)",
-        borderColor: "rgba(255, 255, 255, 0.15)",
+        boxShadow: '0 0 20px rgba(120, 80, 255, 0.15)',
+        borderColor: 'rgba(255, 255, 255, 0.15)',
       }}
     >
       {/* Pulse Line (Top Identity Bar) */}
-      <motion.div 
+      <motion.div
         className="h-[2px] bg-gradient-to-r from-purple-500/70 to-indigo-500/70"
         animate={{
           opacity: [0.7, 1, 0.7],
@@ -226,7 +204,7 @@ function ProofCard({ category, bullets, momentum, score, index }: ProofCardProps
         transition={{
           duration: 3,
           repeat: Infinity,
-          ease: "easeInOut",
+          ease: 'easeInOut',
         }}
       />
 
@@ -247,7 +225,12 @@ function ProofCard({ category, bullets, momentum, score, index }: ProofCardProps
         <ul className="space-y-2 mb-4">
           {bullets.map((bullet, i) => (
             <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
-              <SipherAsterisk size={12} color="currentColor" className="text-indigo-400 opacity-70" ariaHidden={true} />
+              <SipherAsterisk
+                size={12}
+                color="currentColor"
+                className="text-indigo-400 opacity-70"
+                ariaHidden={true}
+              />
               <span>{bullet}</span>
             </li>
           ))}
@@ -259,7 +242,12 @@ function ProofCard({ category, bullets, momentum, score, index }: ProofCardProps
         {/* Momentum Block */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <SipherAsterisk size={12} color="currentColor" className="text-indigo-400" ariaHidden={true} />
+            <SipherAsterisk
+              size={12}
+              color="currentColor"
+              className="text-indigo-400"
+              ariaHidden={true}
+            />
             <span className="text-xs text-muted-foreground uppercase tracking-wider">Momentum</span>
           </div>
           <span className="text-sm font-semibold text-purple-300">{momentum}</span>
@@ -277,7 +265,7 @@ function ProofCard({ category, bullets, momentum, score, index }: ProofCardProps
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-purple-500/0" />
       </div>
     </motion.div>
-  );
+  )
 }
 
 /* ============================== */
@@ -290,7 +278,7 @@ function Metric({ label, value }: { label: string; value: string }) {
       <div className="text-3xl font-bold text-purple-300">{value}</div>
       <div className="text-sm text-muted-foreground">{label}</div>
     </div>
-  );
+  )
 }
 
 function Activity({ title, time, score }: { title: string; time: string; score: string }) {
@@ -302,5 +290,5 @@ function Activity({ title, time, score }: { title: string; time: string; score: 
       </div>
       <div className="text-purple-300 text-sm font-bold">{score}</div>
     </div>
-  );
+  )
 }

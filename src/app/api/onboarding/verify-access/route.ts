@@ -10,17 +10,17 @@ import { logWarn } from '@/lib/logger'
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
       auditLog('unauthorized_access', 'unknown', {
         action: 'onboarding_access_attempt',
         reason: 'not_authenticated',
       })
-      return NextResponse.json(
-        { error: 'Unauthorized', hasAccess: false },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized', hasAccess: false }, { status: 401 })
     }
 
     // Fetch waitlist user data
@@ -77,10 +77,6 @@ export async function GET(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Verify access error:', error)
-    return NextResponse.json(
-      { error: 'Something went wrong', hasAccess: false },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Something went wrong', hasAccess: false }, { status: 500 })
   }
 }
-

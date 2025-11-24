@@ -36,4 +36,3 @@ export function SkipButton({
     </motion.button>
   )
 }
-

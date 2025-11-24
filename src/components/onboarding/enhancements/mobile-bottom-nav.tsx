@@ -70,10 +70,7 @@ export function MobileBottomNav({
           </motion.button>
 
           {showSkip && onSkip && (
-            <button
-              onClick={onSkip}
-              className="px-4 py-3 text-white/60 text-sm min-h-[44px]"
-            >
+            <button onClick={onSkip} className="px-4 py-3 text-white/60 text-sm min-h-[44px]">
               Skip
             </button>
           )}
@@ -93,4 +90,3 @@ export function MobileBottomNav({
     </motion.div>
   )
 }
-

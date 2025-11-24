@@ -40,13 +40,20 @@ export function FounderMirrorSection() {
 
         // Determine which zone the cursor is in (8 zones with specific ranges)
         let zoneIndex = 0
-        if (percentage < 12) zoneIndex = 0 // execution visibility
-        else if (percentage < 24) zoneIndex = 1 // cold outreach
-        else if (percentage < 36) zoneIndex = 2 // slow trust-building
-        else if (percentage < 48) zoneIndex = 3 // lack of proof
-        else if (percentage < 60) zoneIndex = 4 // noisy communities
-        else if (percentage < 72) zoneIndex = 5 // delayed opportunities
-        else if (percentage < 84) zoneIndex = 6 // pedigree bias
+        if (percentage < 12)
+          zoneIndex = 0 // execution visibility
+        else if (percentage < 24)
+          zoneIndex = 1 // cold outreach
+        else if (percentage < 36)
+          zoneIndex = 2 // slow trust-building
+        else if (percentage < 48)
+          zoneIndex = 3 // lack of proof
+        else if (percentage < 60)
+          zoneIndex = 4 // noisy communities
+        else if (percentage < 72)
+          zoneIndex = 5 // delayed opportunities
+        else if (percentage < 84)
+          zoneIndex = 6 // pedigree bias
         else zoneIndex = 7 // scattered logs
 
         setActiveWordIndex(zoneIndex)

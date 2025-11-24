@@ -3,7 +3,15 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Loader2, MapPin, Briefcase, TrendingUp, Linkedin, Link as LinkIcon, Sparkles } from 'lucide-react'
+import {
+  Loader2,
+  MapPin,
+  Briefcase,
+  TrendingUp,
+  Linkedin,
+  Link as LinkIcon,
+  Sparkles,
+} from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,36 +43,43 @@ export default function WaitlistCompletePage() {
   useEffect(() => {
     async function getUser() {
       const supabase = createClient()
-      
+
       // Try getSession first (uses cookies), then getUser as fallback
-      const { data: { session } } = await supabase.auth.getSession()
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
       if (session?.user) {
         setUser(session.user)
-        
+
         // Pre-fill name from Google OAuth
         if (session.user.user_metadata?.full_name) {
           setFormData(prev => ({ ...prev, name: session.user.user_metadata.full_name }))
         }
         return
       }
-      
+
       // If no session, try getUser (might work if cookies are still propagating)
-      const { data: { user }, error } = await supabase.auth.getUser()
-      
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser()
+
       if (user && !error) {
         setUser(user)
-        
+
         // Pre-fill name from Google OAuth
         if (user.user_metadata?.full_name) {
           setFormData(prev => ({ ...prev, name: user.user_metadata.full_name }))
         }
         return
       }
-      
+
       // If still no user, wait a bit and try again (cookies might be propagating)
       setTimeout(async () => {
-        const { data: { user: retryUser } } = await supabase.auth.getUser()
+        const {
+          data: { user: retryUser },
+        } = await supabase.auth.getUser()
         if (retryUser) {
           setUser(retryUser)
           if (retryUser.user_metadata?.full_name) {
@@ -145,23 +160,35 @@ export default function WaitlistCompletePage() {
           name: formData.name,
           startupName: formData.startupName,
           startupStage: formData.startupStage,
-          linkedinUrl: formData.linkedinUrl && formData.linkedinUrl.trim() ? formData.linkedinUrl.trim() : '',
+          linkedinUrl:
+            formData.linkedinUrl && formData.linkedinUrl.trim() ? formData.linkedinUrl.trim() : '',
           city: formData.city,
           whatBuilding: formData.whatBuilding,
           websiteUrl: formData.websiteUrl,
         }),
       })
 
-      const result = await response.json()
+      // Safely parse JSON response
+      let result: any = {}
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          const text = await response.text()
+          result = text ? JSON.parse(text) : {}
+        } catch (parseError) {
+          console.error('Failed to parse JSON response:', parseError)
+          throw new Error('Invalid response from server')
+        }
+      }
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to join waitlist')
+        throw new Error(result.error || `Failed to join waitlist (${response.status})`)
       }
 
       // Track successful waitlist signup with complete data
       const { trackWaitlistSignup } = await import('@/lib/analytics/posthog')
       const { track } = await import('@vercel/analytics')
-      
+
       trackWaitlistSignup({
         startup_stage: formData.startupStage,
         city: formData.city,
@@ -219,9 +246,7 @@ export default function WaitlistCompletePage() {
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Your full name"
                 disabled={loading}
                 required
@@ -240,9 +265,7 @@ export default function WaitlistCompletePage() {
               <Input
                 id="startupName"
                 value={formData.startupName}
-                onChange={(e) =>
-                  setFormData({ ...formData, startupName: e.target.value })
-                }
+                onChange={e => setFormData({ ...formData, startupName: e.target.value })}
                 placeholder="e.g., Sipher"
                 disabled={loading}
                 required
@@ -260,9 +283,7 @@ export default function WaitlistCompletePage() {
               </Label>
               <Select
                 value={formData.startupStage}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, startupStage: value })
-                }
+                onValueChange={value => setFormData({ ...formData, startupStage: value })}
                 disabled={loading}
                 required
               >
@@ -287,9 +308,7 @@ export default function WaitlistCompletePage() {
               <Input
                 id="city"
                 value={formData.city}
-                onChange={(e) =>
-                  setFormData({ ...formData, city: e.target.value })
-                }
+                onChange={e => setFormData({ ...formData, city: e.target.value })}
                 placeholder="e.g., Bangalore"
                 disabled={loading}
                 required
@@ -309,9 +328,7 @@ export default function WaitlistCompletePage() {
                 id="linkedinUrl"
                 type="text"
                 value={formData.linkedinUrl}
-                onChange={(e) =>
-                  setFormData({ ...formData, linkedinUrl: e.target.value })
-                }
+                onChange={e => setFormData({ ...formData, linkedinUrl: e.target.value })}
                 placeholder="linkedin.com/in/yourprofile"
                 disabled={loading}
                 autoComplete="url"
@@ -329,9 +346,7 @@ export default function WaitlistCompletePage() {
               <Input
                 id="whatBuilding"
                 value={formData.whatBuilding}
-                onChange={(e) =>
-                  setFormData({ ...formData, whatBuilding: e.target.value })
-                }
+                onChange={e => setFormData({ ...formData, whatBuilding: e.target.value })}
                 placeholder="One-liner about your startup"
                 disabled={loading}
                 inputMode="text"
@@ -350,9 +365,7 @@ export default function WaitlistCompletePage() {
                 id="websiteUrl"
                 type="text"
                 value={formData.websiteUrl}
-                onChange={(e) =>
-                  setFormData({ ...formData, websiteUrl: e.target.value })
-                }
+                onChange={e => setFormData({ ...formData, websiteUrl: e.target.value })}
                 placeholder="yourproduct.com"
                 disabled={loading}
                 autoComplete="url"
@@ -361,9 +374,9 @@ export default function WaitlistCompletePage() {
               />
             </div>
 
-            <Button 
-              type="submit" 
-              disabled={loading} 
+            <Button
+              type="submit"
+              disabled={loading}
               className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700"
               size="lg"
             >

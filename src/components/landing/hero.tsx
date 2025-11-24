@@ -26,8 +26,8 @@ export function Hero() {
   const auraY = useSpring(mouseY, { stiffness: 12, damping: 25 })
 
   // Transform for aura position - 150-250px radius
-  const auraTranslateX = useTransform(auraX, (x) => x - 128) // 256px / 2 = 128px center
-  const auraTranslateY = useTransform(auraY, (y) => y - 128)
+  const auraTranslateX = useTransform(auraX, x => x - 128) // 256px / 2 = 128px center
+  const auraTranslateY = useTransform(auraY, y => y - 128)
 
   // Aura dynamic properties
   const [auraScale, setAuraScale] = useState(1)
@@ -37,7 +37,7 @@ export function Hero() {
 
   // Waitlist count state
   const [waitlistCount, setWaitlistCount] = useState(0)
-  
+
   // Fetch waitlist count
   useEffect(() => {
     const fetchCount = async () => {
@@ -63,7 +63,7 @@ export function Hero() {
   // Feature Flag: A/B test CTA button text
   useEffect(() => {
     const variant = getFeatureFlag('waitlist-cta-variant')
-    
+
     if (variant) {
       // Map variants to button text
       if (variant === 'get-early-access') {
@@ -73,7 +73,7 @@ export function Hero() {
       } else {
         setCtaText('Join Waitlist') // Default
       }
-      
+
       // Track which variant user saw
       trackFeatureFlagExposure('waitlist-cta-variant', variant as string)
     }
@@ -115,9 +115,7 @@ export function Hero() {
         const ctaRect = ctaRef.current.getBoundingClientRect()
         const ctaCenterX = ctaRect.left + ctaRect.width / 2 - rect.left
         const ctaCenterY = ctaRect.top + ctaRect.height / 2 - rect.top
-        const distance = Math.sqrt(
-          Math.pow(x - ctaCenterX, 2) + Math.pow(y - ctaCenterY, 2)
-        )
+        const distance = Math.sqrt(Math.pow(x - ctaCenterX, 2) + Math.pow(y - ctaCenterY, 2))
         const maxDistance = 80 // Snap within 80px
         if (distance < maxDistance) {
           const scale = 1 + (1 - distance / maxDistance) * 0.3 // 1.0x → 1.3x
@@ -202,7 +200,8 @@ export function Hero() {
         ref={heroRef}
         className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 md:pt-48 pb-24 md:pb-0"
         style={{
-          background: 'radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.06) 0%, transparent 50%), #0b0b0c'
+          background:
+            'radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.06) 0%, transparent 50%), #0b0b0c',
         }}
       >
         {/* Execution Aura - Cursor Following Effect */}
@@ -301,7 +300,9 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
             className="text-sm md:text-[15px] leading-relaxed mb-8 md:mb-12 mx-auto max-w-[600px] text-white/80 flex flex-wrap items-center justify-center gap-1 md:gap-2 px-2"
           >
-            Where founders turn <span className="text-purple-400">work</span> → <span className="text-purple-400">visibility</span> → <span className="text-purple-400">opportunity</span>.
+            Where founders turn <span className="text-purple-400">work</span> →{' '}
+            <span className="text-purple-400">visibility</span> →{' '}
+            <span className="text-purple-400">opportunity</span>.
             <SipherAsterisk
               size={20}
               color="currentColor"
@@ -322,10 +323,10 @@ export function Hero() {
               onClick={() => {
                 const variant = getFeatureFlag('waitlist-cta-variant')
                 trackCTAClick('join_waitlist', 'hero')
-                track('cta_click', { 
-                  cta: 'join_waitlist', 
+                track('cta_click', {
+                  cta: 'join_waitlist',
                   location: 'hero',
-                  variant: variant || 'join-waitlist' // Track which variant was clicked
+                  variant: variant || 'join-waitlist', // Track which variant was clicked
                 })
                 setWaitlistModalOpen(true)
               }}
@@ -340,12 +341,7 @@ export function Hero() {
             >
               {ctaText}
               <span className={`sipher-ast-ring ${isCtaHovered ? 'hovered' : ''}`}>
-                <SipherAsterisk
-                  size={16}
-                  color="#0b0b0c"
-                  animated={false}
-                  ariaHidden={true}
-                />
+                <SipherAsterisk size={16} color="#0b0b0c" animated={false} ariaHidden={true} />
               </span>
             </motion.button>
 
@@ -356,7 +352,10 @@ export function Hero() {
               transition={{ duration: 0.8, delay: 0.8 }}
               className="text-sm text-white/70 px-2 mb-16 md:mb-20"
             >
-              <span className="text-purple-400 font-semibold">{displayedCount > 100 ? `${displayedCount.toLocaleString()}+` : '100+'}</span> founders already on the list
+              <span className="text-purple-400 font-semibold">
+                {displayedCount > 100 ? `${displayedCount.toLocaleString()}+` : '100+'}
+              </span>{' '}
+              founders already on the list
             </motion.p>
           </motion.div>
 
@@ -367,21 +366,21 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 1.2 }}
             onClick={() => {
               // Find the next section after hero (FounderMirrorSection)
-              const sections = document.querySelectorAll('section');
+              const sections = document.querySelectorAll('section')
               if (sections.length > 1) {
                 // Get the second section (first one after hero)
-                const nextSection = sections[1];
-                const navbarHeight = window.innerWidth < 768 ? 80 : 120;
-                const elementPosition = nextSection.getBoundingClientRect().top + window.pageYOffset;
-                const offsetPosition = Math.max(0, elementPosition - navbarHeight);
-                
+                const nextSection = sections[1]
+                const navbarHeight = window.innerWidth < 768 ? 80 : 120
+                const elementPosition = nextSection.getBoundingClientRect().top + window.pageYOffset
+                const offsetPosition = Math.max(0, elementPosition - navbarHeight)
+
                 window.scrollTo({
                   top: offsetPosition,
-                  behavior: 'smooth'
-                });
+                  behavior: 'smooth',
+                })
               } else {
                 // Fallback: scroll down by viewport height
-                window.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
+                window.scrollBy({ top: window.innerHeight, behavior: 'smooth' })
               }
             }}
             className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-white/30 rounded-lg p-2 transition-all duration-300 hover:bg-white/5 z-20"
@@ -390,25 +389,24 @@ export function Hero() {
             <motion.p
               className="text-xs text-white/40 mb-2 group-hover:text-white/60 transition-colors"
               animate={{ opacity: [0.4, 0.6, 0.4] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             >
               See how it works
             </motion.p>
             <motion.div
               animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
               className="w-5 h-8 border border-white/20 rounded-full flex items-start justify-center p-1.5 group-hover:border-white/40 transition-colors"
             >
               <motion.div
                 animate={{ y: [0, 12, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 className="w-1 h-1.5 bg-white/40 rounded-full group-hover:bg-white/60 transition-colors"
               />
             </motion.div>
           </motion.button>
         </div>
       </section>
-
     </>
   )
 }

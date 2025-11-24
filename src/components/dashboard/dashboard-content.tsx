@@ -1,30 +1,26 @@
-"use client";
+'use client'
 
 import { BentoGrid, BentoCard } from '@/components/ui/bento-grid'
 import { ProgressRing } from '@/components/ui/progress-ring'
 import { Code2, TrendingUp, Calendar, BarChart3, Zap, Target } from 'lucide-react'
 
 interface DashboardContentProps {
-  userEmail: string;
+  userEmail: string
   mockData: {
-    momentum: number;
-    consistency: number;
-    totalLogs: number;
-    activeDays: number;
-    streak: number;
-  };
+    momentum: number
+    consistency: number
+    totalLogs: number
+    activeDays: number
+    streak: number
+  }
 }
 
 export function DashboardContent({ userEmail, mockData }: DashboardContentProps) {
   return (
     <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12">
       <div className="mb-8">
-        <h1 className="text-4xl md:text-5xl font-black text-white mb-2">
-          Welcome back
-        </h1>
-        <p className="text-muted-foreground">
-          {userEmail}
-        </p>
+        <h1 className="text-4xl md:text-5xl font-black text-white mb-2">Welcome back</h1>
+        <p className="text-muted-foreground">{userEmail}</p>
       </div>
 
       {/* Bento Grid Layout - 2025 Trend */}
@@ -69,9 +65,7 @@ export function DashboardContent({ userEmail, mockData }: DashboardContentProps)
               <Code2 className="w-5 h-5 text-purple-400 mb-3" />
               <h3 className="text-lg font-semibold text-white mb-1">Total Logs</h3>
             </div>
-            <div className="text-4xl font-black text-white">
-              {mockData.totalLogs}
-            </div>
+            <div className="text-4xl font-black text-white">{mockData.totalLogs}</div>
           </div>
         </BentoCard>
 
@@ -82,9 +76,7 @@ export function DashboardContent({ userEmail, mockData }: DashboardContentProps)
               <Calendar className="w-5 h-5 text-cyan-400 mb-3" />
               <h3 className="text-lg font-semibold text-white mb-1">Active Days</h3>
             </div>
-            <div className="text-4xl font-black text-white">
-              {mockData.activeDays}
-            </div>
+            <div className="text-4xl font-black text-white">{mockData.activeDays}</div>
           </div>
         </BentoCard>
 
@@ -124,9 +116,7 @@ export function DashboardContent({ userEmail, mockData }: DashboardContentProps)
               <Target className="w-5 h-5 text-green-400 mb-3" />
               <h3 className="text-lg font-semibold text-white mb-1">This Week</h3>
             </div>
-            <div className="text-sm text-muted-foreground">
-              Log 5 more entries to hit your goal
-            </div>
+            <div className="text-sm text-muted-foreground">Log 5 more entries to hit your goal</div>
           </div>
         </BentoCard>
       </BentoGrid>
@@ -142,6 +132,5 @@ export function DashboardContent({ userEmail, mockData }: DashboardContentProps)
         </ul>
       </div>
     </div>
-  );
+  )
 }
-

@@ -19,7 +19,7 @@ export function triggerHaptic(type: HapticType = 'medium') {
   if (!('vibrate' in navigator)) return
 
   const pattern = hapticPatterns[type]
-  
+
   try {
     navigator.vibrate(pattern)
   } catch (error) {
@@ -34,4 +34,3 @@ export function triggerHaptic(type: HapticType = 'medium') {
 export function useHapticFeedback(type: HapticType = 'medium') {
   return () => triggerHaptic(type)
 }
-

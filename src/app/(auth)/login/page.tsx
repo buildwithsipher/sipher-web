@@ -22,7 +22,7 @@ export default function LoginPage() {
             access_type: 'offline',
             prompt: 'consent',
           },
-        }
+        },
       })
       if (error) {
         console.error('Google login error:', error.message)

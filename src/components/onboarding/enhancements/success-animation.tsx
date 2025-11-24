@@ -42,4 +42,3 @@ export function SuccessAnimation({ show, message, onComplete }: SuccessAnimation
     </motion.div>
   )
 }
-

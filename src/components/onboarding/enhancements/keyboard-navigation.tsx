@@ -25,16 +25,12 @@ export function useKeyboardNavigation({
     const handleKeyDown = (e: KeyboardEvent) => {
       // Prevent default if we're handling the key
       const handledKeys = ['Enter', 'Escape', 'ArrowLeft', 'ArrowRight']
-      
+
       if (!handledKeys.includes(e.key)) return
 
       // Don't handle if user is typing in an input/textarea
       const target = e.target as HTMLElement
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable
-      ) {
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
         // Allow Enter in textareas, but handle Escape
         if (e.key === 'Escape') {
           e.preventDefault()
@@ -85,4 +81,3 @@ export function KeyboardHints() {
     </div>
   )
 }
-

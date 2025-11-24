@@ -73,7 +73,7 @@ export default function AdminPage() {
 
     const query = searchQuery.toLowerCase()
     const filtered = users.filter(
-      (user) =>
+      user =>
         user.name.toLowerCase().includes(query) ||
         user.email.toLowerCase().includes(query) ||
         user.startup_name?.toLowerCase().includes(query) ||
@@ -87,14 +87,11 @@ export default function AdminPage() {
 
     try {
       setLoading(true)
-      const response = await fetch(
-        `/api/admin/users?status=${statusFilter}&limit=100`,
-        {
-          headers: {
-            Authorization: `Bearer ${adminSecret}`,
-          },
-        }
-      )
+      const response = await fetch(`/api/admin/users?status=${statusFilter}&limit=100`, {
+        headers: {
+          Authorization: `Bearer ${adminSecret}`,
+        },
+      })
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -193,7 +190,7 @@ export default function AdminPage() {
               Enter your admin secret to access the admin panel
             </p>
             <form
-              onSubmit={(e) => {
+              onSubmit={e => {
                 e.preventDefault()
                 const formData = new FormData(e.currentTarget)
                 const secret = formData.get('secret') as string
@@ -281,7 +278,7 @@ export default function AdminPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Pending</p>
                 <p className="text-2xl font-bold text-orange-400">
-                  {users.filter((u) => u.status === 'pending').length}
+                  {users.filter(u => u.status === 'pending').length}
                 </p>
               </div>
               <Clock className="w-8 h-8 text-orange-400" />
@@ -292,7 +289,7 @@ export default function AdminPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Approved</p>
                 <p className="text-2xl font-bold text-blue-400">
-                  {users.filter((u) => u.status === 'approved').length}
+                  {users.filter(u => u.status === 'approved').length}
                 </p>
               </div>
               <CheckCircle2 className="w-8 h-8 text-blue-400" />
@@ -303,7 +300,7 @@ export default function AdminPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Activated</p>
                 <p className="text-2xl font-bold text-green-400">
-                  {users.filter((u) => u.status === 'activated').length}
+                  {users.filter(u => u.status === 'activated').length}
                 </p>
               </div>
               <CheckCircle2 className="w-8 h-8 text-green-400" />
@@ -318,24 +315,22 @@ export default function AdminPage() {
             <Input
               placeholder="Search by name, email, startup, or city..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
           <div className="flex gap-2">
-            {(['all', 'pending', 'approved', 'activated'] as StatusFilter[]).map(
-              (status) => (
-                <Button
-                  key={status}
-                  variant={statusFilter === status ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setStatusFilter(status)}
-                  className="capitalize"
-                >
-                  {status}
-                </Button>
-              )
-            )}
+            {(['all', 'pending', 'approved', 'activated'] as StatusFilter[]).map(status => (
+              <Button
+                key={status}
+                variant={statusFilter === status ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter(status)}
+                className="capitalize"
+              >
+                {status}
+              </Button>
+            ))}
           </div>
         </div>
 
@@ -373,14 +368,12 @@ export default function AdminPage() {
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center">
                       <p className="text-muted-foreground">
-                        {searchQuery
-                          ? 'No users found matching your search'
-                          : 'No users found'}
+                        {searchQuery ? 'No users found matching your search' : 'No users found'}
                       </p>
                     </td>
                   </tr>
                 ) : (
-                  filteredUsers.map((user) => (
+                  filteredUsers.map(user => (
                     <motion.tr
                       key={user.id}
                       initial={{ opacity: 0, y: 10 }}
@@ -389,9 +382,7 @@ export default function AdminPage() {
                     >
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-medium text-foreground">
-                            {user.name}
-                          </p>
+                          <p className="font-medium text-foreground">{user.name}</p>
                           <p className="text-sm text-muted-foreground flex items-center gap-1">
                             <Mail className="w-3 h-3" />
                             {user.email}
@@ -402,13 +393,9 @@ export default function AdminPage() {
                         <div className="flex items-center gap-2">
                           <Briefcase className="w-4 h-4 text-muted-foreground" />
                           <div>
-                            <p className="text-sm font-medium">
-                              {user.startup_name || '—'}
-                            </p>
+                            <p className="text-sm font-medium">{user.startup_name || '—'}</p>
                             {user.what_building && (
-                              <p className="text-xs text-muted-foreground">
-                                {user.what_building}
-                              </p>
+                              <p className="text-xs text-muted-foreground">{user.what_building}</p>
                             )}
                           </div>
                         </div>
@@ -416,9 +403,7 @@ export default function AdminPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm capitalize">
-                            {user.startup_stage || '—'}
-                          </span>
+                          <span className="text-sm capitalize">{user.startup_stage || '—'}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -427,9 +412,7 @@ export default function AdminPage() {
                           <span className="text-sm">{user.city || '—'}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        {getStatusBadge(user.status)}
-                      </td>
+                      <td className="px-6 py-4">{getStatusBadge(user.status)}</td>
                       <td className="px-6 py-4">
                         <p className="text-sm text-muted-foreground">
                           {format(new Date(user.created_at), 'MMM d, yyyy')}
@@ -495,4 +478,3 @@ export default function AdminPage() {
     </div>
   )
 }
-

@@ -28,8 +28,14 @@ export function MagneticButton({
   const mouseY = useMotionValue(0)
 
   const springConfig = { stiffness: 150, damping: 15 }
-  const x = useSpring(useTransform(mouseX, (v) => v * strength), springConfig)
-  const y = useSpring(useTransform(mouseY, (v) => v * strength), springConfig)
+  const x = useSpring(
+    useTransform(mouseX, v => v * strength),
+    springConfig
+  )
+  const y = useSpring(
+    useTransform(mouseY, v => v * strength),
+    springConfig
+  )
 
   useEffect(() => {
     if (!buttonRef.current || disabled) return
@@ -78,4 +84,3 @@ export function MagneticButton({
     </motion.button>
   )
 }
-

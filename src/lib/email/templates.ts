@@ -106,11 +106,7 @@ interface ActivationEmailProps {
   activationToken?: string
 }
 
-export function activationEmail({
-  name,
-  activationUrl,
-  activationToken,
-}: ActivationEmailProps) {
+export function activationEmail({ name, activationUrl, activationToken }: ActivationEmailProps) {
   const firstName = name.split(' ')[0]
   return {
     subject: "You're In — Your Sipher Builder Access Is Ready",
@@ -151,7 +147,9 @@ export function activationEmail({
                     Activate My Profile →
                   </a>
                 </div>
-                ${activationToken ? `
+                ${
+                  activationToken
+                    ? `
                 <div style="background: rgba(0, 0, 0, 0.5); border-radius: 8px; padding: 20px; margin-top: 24px; border: 1px solid rgba(123, 92, 255, 0.3);">
                   <p style="margin: 0 0 8px 0; font-size: 12px; color: #9CA3AF; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
                     Activation Token (if needed):
@@ -163,7 +161,9 @@ export function activationEmail({
                     Use this token if the magic link doesn't work. Keep it secure.
                   </p>
                 </div>
-                ` : ''}
+                `
+                    : ''
+                }
 
                 <div style="background: rgba(0, 0, 0, 0.5); border-radius: 8px; padding: 20px; margin-top: 32px;">
                   <p style="margin: 0 0 12px 0; font-size: 14px; color: #ffffff; font-weight: 600;">
@@ -207,4 +207,3 @@ export function activationEmail({
     `,
   }
 }
-

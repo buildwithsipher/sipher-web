@@ -1,17 +1,17 @@
-"use client";
+'use client'
 
-import { createClient } from "@/lib/supabase/client";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { createClient } from '@/lib/supabase/client'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function OnboardingPage() {
-  const supabase = createClient();
-  const router = useRouter();
+  const supabase = createClient()
+  const router = useRouter()
 
   async function handleGoogleLogin() {
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
+        provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback?next=/waitlist/complete`,
           queryParams: {
@@ -19,17 +19,17 @@ export default function OnboardingPage() {
             prompt: 'consent',
           },
         },
-      });
+      })
 
       if (error) {
-        console.error("Google login error:", error.message);
-        alert("Login failed. Please try again.");
+        console.error('Google login error:', error.message)
+        alert('Login failed. Please try again.')
       } else if (data?.url) {
         // Redirect to Google OAuth
         window.location.href = data.url
       }
     } catch (err) {
-      console.error("Unexpected login error:", err);
+      console.error('Unexpected login error:', err)
     }
   }
 
@@ -37,7 +37,7 @@ export default function OnboardingPage() {
     async function checkSession() {
       const {
         data: { session },
-      } = await supabase.auth.getSession();
+      } = await supabase.auth.getSession()
 
       if (session?.user?.email) {
         // Check if user is in waitlist
@@ -45,20 +45,20 @@ export default function OnboardingPage() {
           .from('waitlist_users')
           .select('id')
           .eq('email', session.user.email)
-          .single();
+          .single()
 
         if (waitlistUser) {
           // User already in waitlist → redirect to dashboard
-          router.push("/waitlist/dashboard");
+          router.push('/waitlist/dashboard')
         } else {
           // User not in waitlist → redirect to complete onboarding
-          router.push("/waitlist/complete");
+          router.push('/waitlist/complete')
         }
       }
     }
 
-    checkSession();
-  }, [supabase, router]);
+    checkSession()
+  }, [supabase, router])
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white">
@@ -77,16 +77,16 @@ export default function OnboardingPage() {
       </button>
 
       <p className="mt-6 text-sm text-gray-500">
-        By signing in, you agree to our{" "}
+        By signing in, you agree to our{' '}
         <a href="/terms" className="underline text-purple-400">
           Terms
-        </a>{" "}
-        and{" "}
+        </a>{' '}
+        and{' '}
         <a href="/privacy" className="underline text-purple-400">
           Privacy Policy
         </a>
         .
       </p>
     </div>
-  );
+  )
 }

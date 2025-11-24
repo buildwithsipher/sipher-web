@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -20,8 +20,10 @@ export default function SettingsPage() {
   useEffect(() => {
     async function loadUser() {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
       if (!user) {
         router.push('/')
         return
@@ -73,17 +75,11 @@ export default function SettingsPage() {
           className="bg-white/[0.02] border border-white/10 rounded-xl p-8 md:p-12"
         >
           <h1 className="text-3xl md:text-4xl font-black mb-8">Settings</h1>
-          
+
           <div className="space-y-6">
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={user?.email || ''}
-                disabled
-                className="mt-2"
-              />
+              <Input id="email" type="email" value={user?.email || ''} disabled className="mt-2" />
               <p className="text-xs text-white/40 mt-1">Email cannot be changed</p>
             </div>
 
@@ -93,7 +89,7 @@ export default function SettingsPage() {
                 id="name"
                 type="text"
                 value={profile?.full_name || ''}
-                onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                onChange={e => setProfile({ ...profile, full_name: e.target.value })}
                 className="mt-2"
               />
             </div>
@@ -104,17 +100,13 @@ export default function SettingsPage() {
                 id="startup"
                 type="text"
                 value={profile?.startup_name || ''}
-                onChange={(e) => setProfile({ ...profile, startup_name: e.target.value })}
+                onChange={e => setProfile({ ...profile, startup_name: e.target.value })}
                 className="mt-2"
               />
             </div>
 
             <div className="pt-4">
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="w-full md:w-auto"
-              >
+              <Button onClick={handleSave} disabled={saving} className="w-full md:w-auto">
                 {saving ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -131,4 +123,3 @@ export default function SettingsPage() {
     </div>
   )
 }
-

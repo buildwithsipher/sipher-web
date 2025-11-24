@@ -30,11 +30,11 @@ export function RippleEffect({ children, className = '', disabled = false }: Rip
       y,
     }
 
-    setRipples((prev) => [...prev, newRipple])
+    setRipples(prev => [...prev, newRipple])
 
     // Remove ripple after animation
     setTimeout(() => {
-      setRipples((prev) => prev.filter((r) => r.id !== newRipple.id))
+      setRipples(prev => prev.filter(r => r.id !== newRipple.id))
     }, 600)
   }
 
@@ -45,7 +45,7 @@ export function RippleEffect({ children, className = '', disabled = false }: Rip
       className={`relative overflow-hidden ${className}`}
     >
       {children}
-      {ripples.map((ripple) => (
+      {ripples.map(ripple => (
         <motion.span
           key={ripple.id}
           className="absolute rounded-full bg-white/30 pointer-events-none"
@@ -62,4 +62,3 @@ export function RippleEffect({ children, className = '', disabled = false }: Rip
     </div>
   )
 }
-

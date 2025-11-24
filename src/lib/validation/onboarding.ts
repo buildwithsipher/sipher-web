@@ -13,7 +13,7 @@ export const handleSchema = z
   .min(3, 'Handle must be at least 3 characters')
   .max(20, 'Handle must be 20 characters or less')
   .regex(/^[a-z0-9_]+$/, 'Handle can only contain lowercase letters, numbers, and underscores')
-  .transform((val) => val.toLowerCase().trim())
+  .transform(val => val.toLowerCase().trim())
 
 /**
  * Name validation schema
@@ -67,13 +67,7 @@ export const urlSchema = z
 /**
  * Startup stage validation schema
  */
-export const startupStageSchema = z.enum([
-  'idea',
-  'mvp',
-  'launched',
-  'revenue',
-  'scaling',
-])
+export const startupStageSchema = z.enum(['idea', 'mvp', 'launched', 'revenue', 'scaling'])
 
 /**
  * Visibility mode validation schema
@@ -98,4 +92,3 @@ export const onboardingCompleteSchema = z.object({
 })
 
 export type OnboardingCompleteInput = z.infer<typeof onboardingCompleteSchema>
-

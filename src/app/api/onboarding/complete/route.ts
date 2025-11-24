@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { onboardingCompleteSchema } from '@/lib/validation/onboarding'
-import { 
-  sanitizeHandle, 
-  sanitizeName, 
-  sanitizeTagline, 
+import {
+  sanitizeHandle,
+  sanitizeName,
+  sanitizeTagline,
   sanitizeUrl,
-  sanitizeText 
+  sanitizeText,
 } from '@/lib/sanitize'
 import { logError, logWarn, logInfo } from '@/lib/logger'
 import { auditLog } from '@/lib/audit'
@@ -21,13 +21,13 @@ export async function POST(request: NextRequest) {
   try {
     // Require authentication
     const supabase = await createServerSupabaseClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Rate limiting: Max 1 completion per user per hour
@@ -62,17 +62,11 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (waitlistError || !waitlistUser) {
-      return NextResponse.json(
-        { error: 'Waitlist entry not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Waitlist entry not found' }, { status: 404 })
     }
 
     if (waitlistUser.status !== 'approved' && waitlistUser.status !== 'activated') {
-      return NextResponse.json(
-        { error: 'User not approved for onboarding' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'User not approved for onboarding' }, { status: 403 })
     }
 
     // Check if already completed
@@ -83,15 +77,12 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (existingProfile?.onboarding_done) {
-      return NextResponse.json(
-        { error: 'Onboarding already completed' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Onboarding already completed' }, { status: 400 })
     }
 
     // Parse and validate request body
     const body = await request.json()
-    
+
     // Sanitize all inputs first
     const sanitizedData = {
       handle: sanitizeHandle(body.handle || ''),
@@ -122,7 +113,7 @@ export async function POST(request: NextRequest) {
         errorCount: validationError.errors?.length || 0,
         action: 'onboarding_validation_failed',
       })
-      
+
       return NextResponse.json(
         {
           error: 'Invalid input. Please check all fields and try again.',
@@ -210,10 +201,7 @@ export async function POST(request: NextRequest) {
         action: 'profile_update_failed',
       })
 
-      return NextResponse.json(
-        { error: 'Failed to complete onboarding' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to complete onboarding' }, { status: 500 })
     }
 
     // Update waitlist_users with images if provided
@@ -228,13 +216,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Audit log
-    auditLog('onboarding_completed', user.id, {
-      handle: validatedData.handle,
-      visibility: validatedData.defaultVisibility,
-    }, {
-      ip: request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || undefined,
-      userAgent: request.headers.get('user-agent') || undefined,
-    })
+    auditLog(
+      'onboarding_completed',
+      user.id,
+      {
+        handle: validatedData.handle,
+        visibility: validatedData.defaultVisibility,
+      },
+      {
+        ip:
+          request.headers.get('x-forwarded-for')?.split(',')[0] ||
+          request.headers.get('x-real-ip') ||
+          undefined,
+        userAgent: request.headers.get('user-agent') || undefined,
+      }
+    )
 
     return NextResponse.json({
       success: true,
@@ -245,10 +241,6 @@ export async function POST(request: NextRequest) {
     logError('Unexpected onboarding completion error', error, {
       action: 'onboarding_complete_unexpected',
     })
-    return NextResponse.json(
-      { error: 'Something went wrong' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }
-

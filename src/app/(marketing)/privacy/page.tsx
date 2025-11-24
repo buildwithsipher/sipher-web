@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { Logo } from "@/components/shared/logo";
-import Link from "next/link";
+import { motion } from 'framer-motion'
+import { Logo } from '@/components/shared/logo'
+import Link from 'next/link'
 
 export default function PrivacyPage() {
   return (
@@ -18,11 +18,14 @@ export default function PrivacyPage() {
           <div className="flex justify-center mb-8">
             <Logo size="medium" animated={false} />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-center mb-4">
-            Privacy Policy
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-black text-center mb-4">Privacy Policy</h1>
           <p className="text-center text-white/60">
-            Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            Last updated:{' '}
+            {new Date().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
           </p>
         </motion.div>
 
@@ -63,17 +66,15 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-bold mb-4">3. Data Security</h2>
               <p className="text-white/70 leading-relaxed">
-                We implement appropriate security measures to protect your personal information. 
-                However, no method of transmission over the Internet is 100% secure, and we 
-                cannot guarantee absolute security.
+                We implement appropriate security measures to protect your personal information.
+                However, no method of transmission over the Internet is 100% secure, and we cannot
+                guarantee absolute security.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-bold mb-4">4. Your Rights</h2>
-              <p className="text-white/70 leading-relaxed mb-4">
-                You have the right to:
-              </p>
+              <p className="text-white/70 leading-relaxed mb-4">You have the right to:</p>
               <ul className="list-disc list-inside space-y-2 text-white/70 ml-4">
                 <li>Access your personal data</li>
                 <li>Correct inaccurate data</li>
@@ -85,7 +86,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-bold mb-4">5. Cookies</h2>
               <p className="text-white/70 leading-relaxed">
-                We use cookies to enhance your experience, analyze usage, and assist in our 
+                We use cookies to enhance your experience, analyze usage, and assist in our
                 marketing efforts. You can control cookies through your browser settings.
               </p>
             </section>
@@ -93,8 +94,11 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-bold mb-4">6. Contact Us</h2>
               <p className="text-white/70 leading-relaxed">
-                If you have questions about this Privacy Policy, contact us at{" "}
-                <a href="mailto:hey@sipher.in" className="text-purple-400 hover:text-purple-300 underline">
+                If you have questions about this Privacy Policy, contact us at{' '}
+                <a
+                  href="mailto:hey@sipher.in"
+                  className="text-purple-400 hover:text-purple-300 underline"
+                >
                   hey@sipher.in
                 </a>
               </p>
@@ -103,16 +107,12 @@ export default function PrivacyPage() {
 
           {/* Back Link */}
           <div className="text-center mt-12">
-            <Link
-              href="/"
-              className="text-white/60 hover:text-white transition-colors underline"
-            >
+            <Link href="/" className="text-white/60 hover:text-white transition-colors underline">
               ← Back to Home
             </Link>
           </div>
         </motion.div>
       </div>
     </div>
-  );
+  )
 }
-

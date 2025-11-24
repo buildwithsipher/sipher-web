@@ -1,14 +1,14 @@
-"use client";
+'use client'
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { Command } from "cmdk";
-import { 
-  Search, 
-  LogIn, 
-  User, 
-  Settings, 
-  FileText, 
+import * as React from 'react'
+import { useRouter } from 'next/navigation'
+import { Command } from 'cmdk'
+import {
+  Search,
+  LogIn,
+  User,
+  Settings,
+  FileText,
   MapPin,
   Zap,
   ArrowRight,
@@ -17,155 +17,155 @@ import {
   TrendingUp,
   Users,
   Calendar,
-  BarChart3
-} from "lucide-react";
-import { useUIStore } from "@/lib/store";
-import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+  BarChart3,
+} from 'lucide-react'
+import { useUIStore } from '@/lib/store'
+import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface CommandItem {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  shortcut?: string;
-  action: () => void;
-  group: string;
+  id: string
+  label: string
+  icon: React.ReactNode
+  shortcut?: string
+  action: () => void
+  group: string
 }
 
 export function CommandPalette() {
-  const router = useRouter();
-  const { commandPaletteOpen, setCommandPaletteOpen, setWaitlistModalOpen } = useUIStore();
-  const [search, setSearch] = React.useState("");
+  const router = useRouter()
+  const { commandPaletteOpen, setCommandPaletteOpen, setWaitlistModalOpen } = useUIStore()
+  const [search, setSearch] = React.useState('')
 
   const commands: CommandItem[] = [
     {
-      id: "log-entry",
-      label: "Log new entry",
+      id: 'log-entry',
+      label: 'Log new entry',
       icon: <Code2 className="w-4 h-4" />,
-      shortcut: "L",
+      shortcut: 'L',
       action: () => {
-        router.push("/dashboard");
-        setCommandPaletteOpen(false);
+        router.push('/dashboard')
+        setCommandPaletteOpen(false)
       },
-      group: "Actions",
+      group: 'Actions',
     },
     {
-      id: "view-proofcard",
-      label: "View ProofCard",
+      id: 'view-proofcard',
+      label: 'View ProofCard',
       icon: <BarChart3 className="w-4 h-4" />,
-      shortcut: "P",
+      shortcut: 'P',
       action: () => {
-        router.push("/dashboard?tab=proofcard");
-        setCommandPaletteOpen(false);
+        router.push('/dashboard?tab=proofcard')
+        setCommandPaletteOpen(false)
       },
-      group: "Actions",
+      group: 'Actions',
     },
     {
-      id: "join-waitlist",
-      label: "Join waitlist",
+      id: 'join-waitlist',
+      label: 'Join waitlist',
       icon: <Users className="w-4 h-4" />,
-      shortcut: "J",
+      shortcut: 'J',
       action: () => {
-        setWaitlistModalOpen(true);
-        setCommandPaletteOpen(false);
+        setWaitlistModalOpen(true)
+        setCommandPaletteOpen(false)
       },
-      group: "Actions",
+      group: 'Actions',
     },
     {
-      id: "view-pulse",
-      label: "View India Pulse",
+      id: 'view-pulse',
+      label: 'View India Pulse',
       icon: <MapPin className="w-4 h-4" />,
-      shortcut: "M",
+      shortcut: 'M',
       action: () => {
-        router.push("/#pulse");
-        setCommandPaletteOpen(false);
+        router.push('/#pulse')
+        setCommandPaletteOpen(false)
       },
-      group: "Navigation",
+      group: 'Navigation',
     },
     {
-      id: "view-roadmap",
-      label: "View Roadmap",
+      id: 'view-roadmap',
+      label: 'View Roadmap',
       icon: <TrendingUp className="w-4 h-4" />,
-      shortcut: "R",
+      shortcut: 'R',
       action: () => {
-        router.push("/#roadmap");
-        setCommandPaletteOpen(false);
+        router.push('/#roadmap')
+        setCommandPaletteOpen(false)
       },
-      group: "Navigation",
+      group: 'Navigation',
     },
     {
-      id: "login",
-      label: "Login",
+      id: 'login',
+      label: 'Login',
       icon: <LogIn className="w-4 h-4" />,
-      shortcut: "⌘K",
+      shortcut: '⌘K',
       action: () => {
-        router.push("/login");
-        setCommandPaletteOpen(false);
+        router.push('/login')
+        setCommandPaletteOpen(false)
       },
-      group: "Account",
+      group: 'Account',
     },
     {
-      id: "dashboard",
-      label: "Dashboard",
+      id: 'dashboard',
+      label: 'Dashboard',
       icon: <User className="w-4 h-4" />,
-      shortcut: "D",
+      shortcut: 'D',
       action: () => {
-        router.push("/dashboard");
-        setCommandPaletteOpen(false);
+        router.push('/dashboard')
+        setCommandPaletteOpen(false)
       },
-      group: "Account",
+      group: 'Account',
     },
     {
-      id: "settings",
-      label: "Settings",
+      id: 'settings',
+      label: 'Settings',
       icon: <Settings className="w-4 h-4" />,
-      shortcut: ",",
+      shortcut: ',',
       action: () => {
-        router.push("/settings");
-        setCommandPaletteOpen(false);
+        router.push('/settings')
+        setCommandPaletteOpen(false)
       },
-      group: "Account",
+      group: 'Account',
     },
-  ];
+  ]
 
   // Filter commands based on search
   const filteredCommands = React.useMemo(() => {
-    if (!search) return commands;
-    const lowerSearch = search.toLowerCase();
+    if (!search) return commands
+    const lowerSearch = search.toLowerCase()
     return commands.filter(
-      (cmd) =>
+      cmd =>
         cmd.label.toLowerCase().includes(lowerSearch) ||
         cmd.group.toLowerCase().includes(lowerSearch)
-    );
-  }, [search, commands]);
+    )
+  }, [search, commands])
 
   // Group commands
   const groupedCommands = React.useMemo(() => {
-    const groups: Record<string, CommandItem[]> = {};
-    filteredCommands.forEach((cmd) => {
+    const groups: Record<string, CommandItem[]> = {}
+    filteredCommands.forEach(cmd => {
       if (!groups[cmd.group]) {
-        groups[cmd.group] = [];
+        groups[cmd.group] = []
       }
-      groups[cmd.group].push(cmd);
-    });
-    return groups;
-  }, [filteredCommands]);
+      groups[cmd.group].push(cmd)
+    })
+    return groups
+  }, [filteredCommands])
 
   // Keyboard shortcut handler
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setCommandPaletteOpen(!commandPaletteOpen);
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setCommandPaletteOpen(!commandPaletteOpen)
       }
-      if (e.key === "Escape" && commandPaletteOpen) {
-        setCommandPaletteOpen(false);
+      if (e.key === 'Escape' && commandPaletteOpen) {
+        setCommandPaletteOpen(false)
       }
-    };
+    }
 
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, [commandPaletteOpen, setCommandPaletteOpen]);
+    document.addEventListener('keydown', down)
+    return () => document.removeEventListener('keydown', down)
+  }, [commandPaletteOpen, setCommandPaletteOpen])
 
   return (
     <AnimatePresence>
@@ -179,7 +179,7 @@ export function CommandPalette() {
             onClick={() => setCommandPaletteOpen(false)}
             className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
           />
-          
+
           {/* Command Palette */}
           <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] px-4">
             <motion.div
@@ -216,7 +216,7 @@ export function CommandPalette() {
                         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                           {group}
                         </div>
-                        {items.map((cmd) => (
+                        {items.map(cmd => (
                           <Command.Item
                             key={cmd.id}
                             onSelect={cmd.action}
@@ -244,6 +244,5 @@ export function CommandPalette() {
         </>
       )}
     </AnimatePresence>
-  );
+  )
 }
-
