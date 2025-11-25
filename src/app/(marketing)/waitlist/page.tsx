@@ -10,7 +10,7 @@ export default function LandingPage() {
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0D0D0D] text-center text-white">
       {/* --- Glow Background Pulse --- */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-purple-900/20 via-black to-black" />
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-purple-500/10 blur-[120px]" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#7B5CFF]/10 blur-[120px]" />
 
       {/* --- Hero Content --- */}
       <motion.div
@@ -20,7 +20,7 @@ export default function LandingPage() {
         className="px-6"
       >
         <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
-          The Founder <span className="text-purple-400">Operating System*</span>
+          The Founder <span className="text-[#7B5CFF]">Operating System*</span>
         </h1>
 
         <p className="mt-6 max-w-2xl mx-auto text-lg text-white/70">
@@ -31,7 +31,7 @@ export default function LandingPage() {
         <div className="mt-10 flex justify-center">
           <Link
             href="/waitlist"
-            className="group inline-flex items-center gap-2 rounded-full bg-purple-600 px-6 py-3 font-medium text-white transition hover:bg-purple-500"
+            className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#7B5CFF] to-[#4AA8FF] px-6 py-3 font-medium text-white hover:shadow-[0_0_30px_rgba(123,92,255,0.4)] transition-all duration-300"
           >
             Join the Waitlist
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />

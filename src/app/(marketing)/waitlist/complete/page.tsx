@@ -25,11 +25,12 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { Logo } from '@/components/shared/logo'
+import type { User } from '@supabase/supabase-js'
 
 export default function WaitlistCompletePage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     startupName: '',
@@ -169,7 +170,7 @@ export default function WaitlistCompletePage() {
       })
 
       // Safely parse JSON response
-      let result: any = {}
+      let result: { error?: string } = {}
       const contentType = response.headers.get('content-type')
       if (contentType && contentType.includes('application/json')) {
         try {
@@ -201,9 +202,10 @@ export default function WaitlistCompletePage() {
 
       // Redirect to waitlist dashboard
       router.push('/waitlist/dashboard')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Submission error:', error)
-      toast.error(error.message || 'Something went wrong')
+      const errorMessage = error instanceof Error ? error.message : 'Something went wrong'
+      toast.error(errorMessage)
       setLoading(false)
     }
   }
@@ -211,7 +213,7 @@ export default function WaitlistCompletePage() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0B0B0C]">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#7B5CFF]" />
       </div>
     )
   }
@@ -377,7 +379,7 @@ export default function WaitlistCompletePage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700"
+              className="w-full bg-gradient-to-r from-[#7B5CFF] to-[#4AA8FF] hover:shadow-[0_0_30px_rgba(123,92,255,0.4)] transition-all duration-300"
               size="lg"
             >
               {loading ? (

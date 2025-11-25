@@ -40,18 +40,24 @@ export default function OnboardingPage() {
       } = await supabase.auth.getSession()
 
       if (session?.user?.email) {
-        // Check if user is in waitlist
-        const { data: waitlistUser } = await supabase
-          .from('waitlist_users')
-          .select('id')
-          .eq('email', session.user.email)
-          .single()
+        // Check if user is in waitlist - handle errors gracefully
+        try {
+          const { data: waitlistUser, error } = await supabase
+            .from('waitlist_users')
+            .select('id')
+            .eq('email', session.user.email)
+            .maybeSingle()
 
-        if (waitlistUser) {
-          // User already in waitlist → redirect to dashboard
-          router.push('/waitlist/dashboard')
-        } else {
-          // User not in waitlist → redirect to complete onboarding
+          // If we got data, user exists in waitlist
+          if (waitlistUser && !error) {
+            router.push('/waitlist/dashboard')
+          } else {
+            // User not in waitlist or error occurred → redirect to complete onboarding
+            router.push('/waitlist/complete')
+          }
+        } catch (error) {
+          // On error, redirect to complete onboarding as fallback
+          console.error('Error checking waitlist status:', error)
           router.push('/waitlist/complete')
         }
       }
@@ -61,28 +67,34 @@ export default function OnboardingPage() {
   }, [supabase, router])
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0B0B0C] text-white">
       <h1 className="text-5xl font-bold mb-6">
-        Welcome to Sipher<span className="text-purple-400">*</span>
+        Welcome to Sipher<span className="text-[#7B5CFF]">*</span>
       </h1>
-      <p className="text-gray-400 mb-10 max-w-md text-center">
+      <p className="text-white/60 mb-10 max-w-md text-center">
         Sign in to access your Founder Dashboard and start building your ProofCard.
       </p>
 
       <button
         onClick={handleGoogleLogin}
-        className="bg-purple-500 hover:bg-purple-600 px-6 py-3 rounded-lg font-semibold transition"
+        className="bg-gradient-to-r from-[#7B5CFF] to-[#4AA8FF] hover:shadow-[0_0_30px_rgba(123,92,255,0.4)] px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 active:scale-95"
       >
         Continue with Google
       </button>
 
-      <p className="mt-6 text-sm text-gray-500">
+      <p className="mt-6 text-sm text-white/40">
         By signing in, you agree to our{' '}
-        <a href="/terms" className="underline text-purple-400">
+        <a
+          href="/terms"
+          className="underline text-[#7B5CFF] hover:text-[#4AA8FF] transition-colors"
+        >
           Terms
         </a>{' '}
         and{' '}
-        <a href="/privacy" className="underline text-purple-400">
+        <a
+          href="/privacy"
+          className="underline text-[#7B5CFF] hover:text-[#4AA8FF] transition-colors"
+        >
           Privacy Policy
         </a>
         .

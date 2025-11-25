@@ -6,7 +6,7 @@ import { EMAIL_CONFIG } from '@/lib/email/config'
 import { z } from 'zod'
 import { nanoid } from 'nanoid'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { logError, logWarn, logInfo } from '@/lib/logger'
+import { logError, logWarn } from '@/lib/logger'
 import { auditLog } from '@/lib/audit'
 import { sanitizeName, sanitizeText, sanitizeUrl, sanitizeTagline } from '@/lib/sanitize'
 
@@ -41,6 +41,18 @@ const waitlistSchema = z.object({
     .optional(),
 })
 
+// Handle CORS preflight requests
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  })
+}
+
 // Handle unsupported methods
 export async function GET() {
   return NextResponse.json(
@@ -50,18 +62,26 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  let body: any = null
+  let body: unknown = null
   try {
-    // Check content type
-    const contentType = request.headers.get('content-type')
-    if (!contentType || !contentType.includes('application/json')) {
-      return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 406 })
+    // Check content type (allow charset parameter)
+    const contentType = request.headers.get('content-type') || ''
+    if (!contentType.includes('application/json')) {
+      return NextResponse.json(
+        { error: 'Content-Type must be application/json' },
+        {
+          status: 415, // Unsupported Media Type (more accurate than 406)
+          headers: {
+            Accept: 'application/json',
+          },
+        }
+      )
     }
 
     // Parse request body
     try {
       body = await request.json()
-    } catch (parseError) {
+    } catch {
       return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
     }
 
@@ -233,7 +253,7 @@ export async function POST(request: NextRequest) {
           referralCode: newUser.referral_code,
         }),
       })
-    } catch (emailError) {
+    } catch {
       logWarn('Failed to send confirmation email', {
         email: data.email,
         action: 'email_send',

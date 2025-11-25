@@ -6,7 +6,26 @@
 import createDOMPurify from 'isomorphic-dompurify'
 
 // Create DOMPurify instance that works on both server and client
-const DOMPurify = createDOMPurify()
+// isomorphic-dompurify automatically detects environment and uses appropriate implementation
+let DOMPurify: ReturnType<typeof createDOMPurify>
+
+try {
+  DOMPurify = createDOMPurify()
+  // Verify DOMPurify has sanitize method
+  if (!DOMPurify || typeof DOMPurify.sanitize !== 'function') {
+    throw new Error('DOMPurify.sanitize is not a function')
+  }
+} catch (error) {
+  console.error('DOMPurify initialization failed:', error)
+  // Fallback sanitizer (simple HTML tag stripper)
+  DOMPurify = {
+    sanitize: (html: string) => {
+      if (typeof html !== 'string') return ''
+      // Strip HTML tags using regex (less secure but works as fallback)
+      return html.replace(/<[^>]*>/g, '').trim()
+    },
+  } as ReturnType<typeof createDOMPurify>
+}
 
 /**
  * Sanitize HTML content (removes scripts, dangerous tags)

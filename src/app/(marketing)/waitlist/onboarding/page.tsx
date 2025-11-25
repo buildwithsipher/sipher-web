@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
-import { Logo } from '@/components/shared/logo'
 import { OnboardingScreen2 } from '@/components/onboarding/Screen2'
 import { OnboardingScreen3 } from '@/components/onboarding/Screen3'
 import { OnboardingScreen4 } from '@/components/onboarding/Screen4'
@@ -36,7 +35,7 @@ function SuccessScreen({
         </p>
         <button
           onClick={onViewDashboard}
-          className="w-full px-6 py-4 bg-purple-500 text-white rounded-xl font-medium hover:bg-purple-600 transition-all duration-200 hover:scale-105 active:scale-95"
+          className="w-full px-6 py-4 bg-gradient-to-r from-[#7B5CFF] to-[#4AA8FF] text-white rounded-xl font-medium hover:shadow-[0_0_30px_rgba(123,92,255,0.4)] transition-all duration-200 hover:scale-105 active:scale-95"
         >
           View Waitlist Dashboard
         </button>
@@ -203,7 +202,7 @@ export default function OnboardingPage() {
           <div
             key={screen}
             className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              screen <= currentScreen ? 'bg-purple-500 w-8' : 'bg-white/20'
+              screen <= currentScreen ? 'bg-[#7B5CFF] w-8' : 'bg-white/20'
             }`}
           />
         ))}
