@@ -59,6 +59,20 @@ export async function OPTIONS() {
 
 // Handle unsupported methods
 export async function GET() {
+  // Log to Sentry when GET is called (shouldn't happen)
+  try {
+    const Sentry = await import('@sentry/nextjs')
+    Sentry.captureMessage('GET request to /api/waitlist (should be POST)', {
+      level: 'warning',
+      tags: {
+        section: 'waitlist',
+        action: 'unsupported_method',
+      },
+    })
+  } catch {
+    // Silently fail if Sentry is not available
+  }
+
   return NextResponse.json(
     { error: 'Method not allowed. Use POST to join the waitlist.' },
     { status: 405 }

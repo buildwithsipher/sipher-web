@@ -260,6 +260,29 @@ export default function MinimalOnboarding() {
 
       if (!response.ok) {
         const errorMessage = result.error || `Failed to join waitlist (${response.status})`
+
+        // Capture HTTP errors in Sentry
+        try {
+          const Sentry = await import('@sentry/nextjs')
+          Sentry.captureException(new Error(errorMessage), {
+            tags: {
+              section: 'waitlist',
+              action: 'join',
+              component: 'MinimalOnboarding',
+              http_status: response.status.toString(),
+            },
+            extra: {
+              status: response.status,
+              statusText: response.statusText,
+              responseBody: result,
+              url: '/api/waitlist',
+            },
+          })
+        } catch (sentryError) {
+          // Silently fail if Sentry is not available
+          console.error('Failed to capture error in Sentry:', sentryError)
+        }
+
         throw new Error(errorMessage)
       }
 
@@ -277,6 +300,26 @@ export default function MinimalOnboarding() {
       setStep('success')
     } catch (error) {
       console.error('Submission error:', error)
+
+      // Capture error in Sentry
+      try {
+        const Sentry = await import('@sentry/nextjs')
+        Sentry.captureException(error, {
+          tags: {
+            section: 'waitlist',
+            action: 'join',
+            component: 'MinimalOnboarding',
+          },
+          extra: {
+            step: 'details',
+            hasFormData: !!formData,
+          },
+        })
+      } catch (sentryError) {
+        // Silently fail if Sentry is not available
+        console.error('Failed to capture error in Sentry:', sentryError)
+      }
+
       const errorMessage =
         error instanceof Error ? error.message : 'Something went wrong. Please try again.'
       toast.error(errorMessage)

@@ -40,10 +40,8 @@ Sentry.init({
     'fb_xd_fragment',
     'bmi_SafeAddOnload',
     'EBCallBackMessageReceived',
-    // Network errors that are not actionable
+    // Network errors that are not actionable (but keep HTTP errors)
     'NetworkError',
-    'Failed to fetch',
-    'Network request failed',
     // ResizeObserver errors (common and not critical)
     'ResizeObserver loop limit exceeded',
   ],
