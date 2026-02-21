@@ -52,7 +52,8 @@ export async function OPTIONS() {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Accept',
+      'Access-Control-Max-Age': '86400', // 24 hours
     },
   })
 }
@@ -75,7 +76,13 @@ export async function GET() {
 
   return NextResponse.json(
     { error: 'Method not allowed. Use POST to join the waitlist.' },
-    { status: 405 }
+    {
+      status: 405,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    }
   )
 }
 
@@ -100,7 +107,15 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json()
     } catch {
-      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
     }
 
     const data = waitlistSchema.parse(body)
@@ -120,6 +135,7 @@ export async function POST(request: NextRequest) {
         {
           status: 429,
           headers: {
+            'Content-Type': 'application/json',
             'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
             'X-RateLimit-Limit': '5',
             'X-RateLimit-Remaining': rateLimit.remaining.toString(),
@@ -163,11 +179,19 @@ export async function POST(request: NextRequest) {
       })
 
       // Return generic success message (don't reveal email exists)
-      return NextResponse.json({
-        success: true,
-        message: 'If this email is not registered, you will receive a confirmation email.',
-        // Don't return position or referral code
-      })
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'If this email is not registered, you will receive a confirmation email.',
+          // Don't return position or referral code
+        },
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
     }
 
     // Handle referral if provided (with rate limiting)
@@ -225,7 +249,12 @@ export async function POST(request: NextRequest) {
       // Generic error (don't reveal details)
       return NextResponse.json(
         { error: 'Something went wrong. Please try again later.' },
-        { status: 500 }
+        {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       )
     }
 
@@ -279,16 +308,29 @@ export async function POST(request: NextRequest) {
       // Don't fail the request if email fails
     }
 
-    return NextResponse.json({
-      success: true,
-      position: displayedPosition,
-      referralCode: newUser.referral_code,
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        position: displayedPosition,
+        referralCode: newUser.referral_code,
+      },
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: error.issues[0]?.message || 'Validation error' },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       )
     }
 
@@ -313,6 +355,14 @@ export async function POST(request: NextRequest) {
     })
 
     const errorMessage = error instanceof Error ? error.message : 'Something went wrong'
-    return NextResponse.json({ error: errorMessage }, { status: 500 })
+    return NextResponse.json(
+      { error: errorMessage },
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
   }
 }
