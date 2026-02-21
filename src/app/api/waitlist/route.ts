@@ -10,6 +10,10 @@ import { logError, logWarn } from '@/lib/logger'
 import { auditLog } from '@/lib/audit'
 import { sanitizeName, sanitizeText, sanitizeUrl, sanitizeTagline } from '@/lib/sanitize'
 
+// Ensure route is dynamic and not cached
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 const waitlistSchema = z.object({
   email: z.string().email('Invalid email address').toLowerCase().trim(),
   name: z

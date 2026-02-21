@@ -155,7 +155,10 @@ export default function WaitlistCompletePage() {
 
       const response = await fetch('/api/waitlist', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
         body: JSON.stringify({
           email: user.email,
           name: formData.name,

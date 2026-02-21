@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { Logo } from '@/components/shared/logo'
 import { trackWaitlistSignup, trackFormStart } from '@/lib/analytics/posthog'
 import { track } from '@vercel/analytics'
+import type { User } from '@supabase/supabase-js'
 
 type Step = 'google' | 'domain' | 'stage' | 'details' | 'success'
 
@@ -76,7 +77,7 @@ export default function MinimalOnboarding() {
   const router = useRouter()
   const [step, setStep] = useState<Step>('google')
   const [loading, setLoading] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [waitlistCount, setWaitlistCount] = useState(0)
 
   const [formData, setFormData] = useState({
@@ -146,7 +147,7 @@ export default function MinimalOnboarding() {
       setLoading(true)
       const supabase = createClient()
 
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback?next=/waitlist/onboarding`,
@@ -209,30 +210,45 @@ export default function MinimalOnboarding() {
         data: { user: currentUser },
       } = await supabase.auth.getUser()
 
-      if (!currentUser) {
+      if (!currentUser?.email) {
         toast.error('Please sign in first')
         setLoading(false)
         return
       }
 
+      // Map domain to whatBuilding format
+      const domainMap: Record<string, string> = {
+        saas: 'SaaS',
+        'ai-ml': 'AI/ML',
+        consumer: 'Consumer',
+        fintech: 'FinTech',
+        edtech: 'EdTech',
+        other: 'Other',
+      }
+
       const response = await fetch('/api/waitlist', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
         body: JSON.stringify({
           email: currentUser.email,
-          name: formData.name,
-          startupName: formData.startupName,
+          name: formData.name.trim(),
+          startupName: formData.startupName.trim(),
           startupStage: formData.stage,
-          city: formData.city,
+          city: formData.city.trim(),
           linkedinUrl: formData.linkedinUrl?.trim() || '',
+          whatBuilding: domainMap[formData.domain] || formData.domain || '',
           websiteUrl: '',
         }),
       })
 
       // Safely parse JSON response
-      let result: any = {}
+      let result: { error?: string; success?: boolean } = {}
       const contentType = response.headers.get('content-type')
-      if (contentType && contentType.includes('application/json')) {
+
+      if (contentType?.includes('application/json')) {
         try {
           const text = await response.text()
           result = text ? JSON.parse(text) : {}
@@ -243,7 +259,8 @@ export default function MinimalOnboarding() {
       }
 
       if (!response.ok) {
-        throw new Error(result.error || `Failed to join waitlist (${response.status})`)
+        const errorMessage = result.error || `Failed to join waitlist (${response.status})`
+        throw new Error(errorMessage)
       }
 
       // Track successful signup
@@ -258,9 +275,11 @@ export default function MinimalOnboarding() {
       })
 
       setStep('success')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Submission error:', error)
-      toast.error(error.message || 'Something went wrong')
+      const errorMessage =
+        error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+      toast.error(errorMessage)
       setLoading(false)
     }
   }
@@ -283,7 +302,9 @@ export default function MinimalOnboarding() {
             >
               <div className="space-y-4">
                 <Logo size="large" />
-                <p className="text-white/60 text-sm">"Where founders turn execution → proof"</p>
+                <p className="text-white/60 text-sm">
+                  &ldquo;Where founders turn execution → proof&rdquo;
+                </p>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20">
                   <span className="text-xs text-purple-400">
                     {displayedCount > 100 ? `${displayedCount.toLocaleString()}+` : '100+'} founders
@@ -372,7 +393,7 @@ export default function MinimalOnboarding() {
                     ? `, ${user.user_metadata.full_name.split(' ')[0]}`
                     : ''}
                 </h1>
-                <p className="text-white/60 text-sm">Let's learn what you're building.</p>
+                <p className="text-white/60 text-sm">Let&apos;s learn what you&apos;re building.</p>
               </div>
 
               <div>
@@ -494,7 +515,7 @@ export default function MinimalOnboarding() {
 
               <div>
                 <h2 className="text-xl font-light text-white mb-2">
-                  Last step, we'll personalize your profile.
+                  Last step, we&apos;ll personalize your profile.
                 </h2>
               </div>
 
@@ -568,7 +589,14 @@ export default function MinimalOnboarding() {
                   ← Back
                 </motion.button>
                 <motion.button
-                  onClick={handleNext}
+                  type="button"
+                  onClick={e => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    if (!loading) {
+                      handleNext()
+                    }
+                  }}
                   disabled={loading || !formData.name || !formData.startupName || !formData.city}
                   className="flex-1 px-6 py-4 bg-white text-[#0D0D0D] rounded-xl font-medium hover:bg-gray-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   whileHover={{
@@ -606,12 +634,12 @@ export default function MinimalOnboarding() {
 
               <div>
                 <h1 className="text-3xl font-light text-white mb-2">
-                  You're on the list{formData.name ? `, ${formData.name.split(' ')[0]}` : ''}!
+                  You&apos;re on the list{formData.name ? `, ${formData.name.split(' ')[0]}` : ''}!
                 </h1>
                 <p className="text-white/60 text-sm mt-4">
                   Your Sipher profile is being prepared.
                   <br />
-                  We'll notify you when your cohort opens.
+                  We&apos;ll notify you when your cohort opens.
                 </p>
               </div>
 
