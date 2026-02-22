@@ -10,9 +10,8 @@ import { logError, logWarn } from '@/lib/logger'
 import { auditLog } from '@/lib/audit'
 import { sanitizeName, sanitizeText, sanitizeUrl, sanitizeTagline } from '@/lib/sanitize'
 
-// Ensure route is dynamic and not cached
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+// Route is dynamic by default in Next.js 16
+// Removed explicit runtime to match working state (commit d694fc7)
 
 const waitlistSchema = z.object({
   email: z.string().email('Invalid email address').toLowerCase().trim(),
