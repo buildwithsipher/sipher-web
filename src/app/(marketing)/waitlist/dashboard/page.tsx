@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import type { User } from '@supabase/supabase-js'
 import {
   LogOut,
   Edit2,
@@ -83,7 +84,7 @@ interface LiveActivity {
 
 export default function WaitlistDashboard() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [waitlistData, setWaitlistData] = useState<WaitlistUser | null>(null)
   const [position, setPosition] = useState<number>(0)
   const [displayedPosition, setDisplayedPosition] = useState<number>(0)
@@ -107,22 +108,7 @@ export default function WaitlistDashboard() {
   const [expandedRoadmap, setExpandedRoadmap] = useState<string[]>([])
   const [uploading, setUploading] = useState<'profile' | 'logo' | null>(null)
 
-  useEffect(() => {
-    fetchUserData()
-    fetchLiveActivities()
-    fetchCommunityStats()
-
-    // Poll for live activities updates every 30 seconds
-    const interval = setInterval(() => {
-      fetchLiveActivities()
-    }, 30000)
-
-    return () => {
-      clearInterval(interval)
-    }
-  }, [])
-
-  async function fetchUserData() {
+  const fetchUserData = useCallback(async () => {
     const supabase = createClient()
 
     const {
@@ -186,9 +172,9 @@ export default function WaitlistDashboard() {
       .limit(1)
 
     setTotalUsers(count || 0)
-  }
+  }, [router])
 
-  async function fetchLiveActivities() {
+  const fetchLiveActivities = useCallback(async () => {
     try {
       // Use API route with admin client to bypass RLS and fetch all users
       const response = await fetch('/api/waitlist/activities')
@@ -205,9 +191,9 @@ export default function WaitlistDashboard() {
       console.error('Live activities error:', error)
       setLiveActivities([])
     }
-  }
+  }, [])
 
-  async function fetchCommunityStats() {
+  const fetchCommunityStats = useCallback(async () => {
     const supabase = createClient()
 
     const { count, error: countError } = await supabase
@@ -278,7 +264,7 @@ export default function WaitlistDashboard() {
       toast.success('Profile updated!')
       setIsSheetOpen(false)
       fetchUserData()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Profile update error:', error)
       toast.error('Failed to update profile. Please try again.')
     }
@@ -321,9 +307,10 @@ export default function WaitlistDashboard() {
 
       // Refresh data
       fetchUserData()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Upload error:', error)
-      toast.error(error.message || 'Failed to upload image')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload image'
+      toast.error(errorMessage)
 
       // Send to Sentry for monitoring
       if (typeof window !== 'undefined') {
@@ -500,7 +487,7 @@ export default function WaitlistDashboard() {
               <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
                 <div>
                   <h1 className="text-3xl md:text-4xl font-semibold mb-2 text-white">
-                    ✦ You're Early, {firstName}
+                    ✦ You&apos;re Early, {firstName}
                   </h1>
                 </div>
               </div>
@@ -1116,7 +1103,7 @@ export default function WaitlistDashboard() {
           className="mb-16"
         >
           <div className="bg-[rgba(255,255,255,0.04)] border border-white/10 rounded-[20px] p-8 backdrop-blur-xl">
-            <h2 className="text-xl font-semibold mb-8 text-white">▌ What's Coming</h2>
+            <h2 className="text-xl font-semibold mb-8 text-white">▌ What&apos;s Coming</h2>
 
             <div className="space-y-4">
               {roadmapItems.map(item => (
@@ -1165,7 +1152,7 @@ export default function WaitlistDashboard() {
           className="mb-16"
         >
           <div className="bg-[rgba(255,255,255,0.04)] border border-white/10 rounded-[20px] p-8 backdrop-blur-xl">
-            <h2 className="text-xl font-semibold mb-4 text-white">▌ Why You're Here</h2>
+            <h2 className="text-xl font-semibold mb-4 text-white">▌ Why You&apos;re Here</h2>
             <div className="border-l-2 border-[#7F5BFF] pl-6">
               <p className="text-lg text-white leading-relaxed">
                 Sipher makes your execution visible — not your pedigree.

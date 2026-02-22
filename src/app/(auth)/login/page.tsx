@@ -60,7 +60,7 @@ export default function LoginPage() {
       )}
 
       <p className="text-gray-500 text-sm mt-6">
-        By continuing, you agree to Sipher's Terms of Service & Privacy Policy.
+        By continuing, you agree to Sipher&apos;s Terms of Service & Privacy Policy.
       </p>
     </div>
   )

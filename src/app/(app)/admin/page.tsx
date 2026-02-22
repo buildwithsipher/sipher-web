@@ -1,14 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
   CheckCircle2,
-  XCircle,
   Clock,
   Users,
   Search,
-  Filter,
   Mail,
   MapPin,
   Briefcase,
@@ -51,11 +49,45 @@ export default function AdminPage() {
   const [adminSecret, setAdminSecret] = useState<string | null>(null)
   const [showSecretPrompt, setShowSecretPrompt] = useState(true)
 
+  const fetchUsers = useCallback(async () => {
+    if (!adminSecret) return
+
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/admin/users?status=${statusFilter}&limit=100`, {
+        headers: {
+          Authorization: `Bearer ${adminSecret}`,
+        },
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Unauthorized - Invalid admin secret')
+          setShowSecretPrompt(true)
+          setAdminSecret(null)
+          return
+        }
+        throw new Error('Failed to fetch users')
+      }
+
+      const data = await response.json()
+      setUsers(data.users || [])
+      setFilteredUsers(data.users || [])
+      setTotal(data.total || 0)
+    } catch (error) {
+      console.error('Fetch error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load users'
+      toast.error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }, [adminSecret, statusFilter])
+
   useEffect(() => {
     if (adminSecret) {
       fetchUsers()
     }
-  }, [statusFilter, adminSecret])
+  }, [adminSecret, fetchUsers])
 
   const handleSecretSubmit = (secret: string) => {
     if (secret.trim()) {
@@ -82,39 +114,6 @@ export default function AdminPage() {
     setFilteredUsers(filtered)
   }, [searchQuery, users])
 
-  async function fetchUsers() {
-    if (!adminSecret) return
-
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/admin/users?status=${statusFilter}&limit=100`, {
-        headers: {
-          Authorization: `Bearer ${adminSecret}`,
-        },
-      })
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast.error('Unauthorized - Invalid admin secret')
-          setShowSecretPrompt(true)
-          setAdminSecret(null)
-          return
-        }
-        throw new Error('Failed to fetch users')
-      }
-
-      const data = await response.json()
-      setUsers(data.users || [])
-      setFilteredUsers(data.users || [])
-      setTotal(data.total || 0)
-    } catch (error: any) {
-      console.error('Fetch error:', error)
-      toast.error(error.message || 'Failed to load users')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   async function handleApprove(userId: string) {
     if (!adminSecret) {
       toast.error('Admin secret required')
@@ -140,7 +139,7 @@ export default function AdminPage() {
 
       toast.success('User approved! Approval email sent.')
       fetchUsers() // Refresh list
-    } catch (error: any) {
+    } catch (error) {
       console.error('Approval error:', error)
       toast.error(error.message || 'Failed to approve user')
     } finally {

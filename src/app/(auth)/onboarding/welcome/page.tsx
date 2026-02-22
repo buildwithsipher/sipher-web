@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { OnboardingFlow } from '@/components/onboarding/onboarding-flow'
+import type { User } from '@supabase/supabase-js'
+import type { WaitlistUser } from '@/types/database'
 
 export default function OnboardingWelcomePage() {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
-  const [waitlistUser, setWaitlistUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [waitlistUser, setWaitlistUser] = useState<WaitlistUser | null>(null)
 
   useEffect(() => {
     async function checkAuth() {

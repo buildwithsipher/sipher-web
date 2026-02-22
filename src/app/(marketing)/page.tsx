@@ -6,9 +6,6 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import {
   ArrowRight,
-  CheckCircle2,
-  Code2,
-  TrendingUp,
   Users,
   Zap,
   MapPin,

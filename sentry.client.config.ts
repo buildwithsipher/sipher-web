@@ -21,7 +21,7 @@ Sentry.init({
   environment: process.env.NODE_ENV || 'development',
 
   // Filter out sensitive data
-  beforeSend(event, hint) {
+  beforeSend(event) {
     // Don't send events in development unless explicitly testing
     if (process.env.NODE_ENV === 'development' && !process.env.NEXT_PUBLIC_SENTRY_DEBUG) {
       return null

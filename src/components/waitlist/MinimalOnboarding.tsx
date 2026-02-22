@@ -226,22 +226,38 @@ export default function MinimalOnboarding() {
         other: 'Other',
       }
 
+      // Log request details for debugging
+      const requestBody = {
+        email: currentUser.email,
+        name: formData.name.trim(),
+        startupName: formData.startupName.trim(),
+        startupStage: formData.stage,
+        city: formData.city.trim(),
+        linkedinUrl: formData.linkedinUrl?.trim() || '',
+        whatBuilding: domainMap[formData.domain] || formData.domain || '',
+        websiteUrl: '',
+      }
+
+      console.log('[Waitlist Client] Sending POST request to /api/waitlist', {
+        method: 'POST',
+        url: '/api/waitlist',
+        body: requestBody,
+      })
+
       const response = await fetch('/api/waitlist', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        body: JSON.stringify({
-          email: currentUser.email,
-          name: formData.name.trim(),
-          startupName: formData.startupName.trim(),
-          startupStage: formData.stage,
-          city: formData.city.trim(),
-          linkedinUrl: formData.linkedinUrl?.trim() || '',
-          whatBuilding: domainMap[formData.domain] || formData.domain || '',
-          websiteUrl: '',
-        }),
+        body: JSON.stringify(requestBody),
+      })
+
+      console.log('[Waitlist Client] Response received', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries()),
       })
 
       // Safely parse JSON response
@@ -261,6 +277,13 @@ export default function MinimalOnboarding() {
       if (!response.ok) {
         const errorMessage = result.error || `Failed to join waitlist (${response.status})`
 
+        console.error('[Waitlist Client] Request failed', {
+          status: response.status,
+          statusText: response.statusText,
+          error: result.error,
+          responseBody: result,
+        })
+
         // Capture HTTP errors in Sentry
         try {
           const Sentry = await import('@sentry/nextjs')
@@ -275,12 +298,22 @@ export default function MinimalOnboarding() {
               status: response.status,
               statusText: response.statusText,
               responseBody: result,
+              requestBody: requestBody,
               url: '/api/waitlist',
             },
           })
         } catch (sentryError) {
           // Silently fail if Sentry is not available
           console.error('Failed to capture error in Sentry:', sentryError)
+        }
+
+        // Provide more helpful error messages based on status code
+        if (response.status === 405) {
+          throw new Error('Invalid request method. Please refresh the page and try again.')
+        } else if (response.status === 406) {
+          throw new Error('Server cannot process this request. Please try again.')
+        } else if (response.status === 415) {
+          throw new Error('Invalid request format. Please refresh and try again.')
         }
 
         throw new Error(errorMessage)

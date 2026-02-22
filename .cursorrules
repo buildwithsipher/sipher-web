@@ -1,0 +1,551 @@
+# SIPHER PROJECT RULES
+
+## Project Context
+You are working on Sipher - a daily execution tracker for Indian founders that turns their work into quantified proof for investors.
+
+## Tech Stack
+- **Framework:** Next.js 14 (App Router)
+- **Language:** TypeScript (strict mode)
+- **Database:** Supabase (PostgreSQL + Auth)
+- **Styling:** Tailwind CSS + shadcn/ui components
+- **Email:** Resend
+- **Animations:** Framer Motion
+- **State:** React hooks (useState, useEffect)
+- **Forms:** React Hook Form + Zod validation
+
+## Architecture
+
+### File Structure
+- Use Route Groups: `(marketing)`, `(auth)`, `(app)`
+- Marketing pages: Public, no auth required
+- Auth pages: OAuth callbacks, activation
+- App pages: Protected, require authentication
+- API routes: `/api/waitlist`, `/api/admin/approve`
+
+### Component Organization
+```
+src/
+├── app/
+│   ├── (marketing)/     # Public pages
+│   ├── (auth)/          # Auth handlers
+│   ├── (app)/           # Protected dashboard
+│   └── api/             # API routes
+├── components/
+│   ├── ui/              # shadcn components
+│   ├── landing/         # Landing page specific
+│   ├── success/         # Success page specific
+│   └── shared/          # Reusable components
+├── lib/
+│   ├── supabase/        # Supabase clients
+│   ├── email/           # Email templates
+│   └── utils.ts         # Helper functions
+└── types/               # TypeScript types
+```
+
+## Design System
+
+### Brand Colors
+```typescript
+// Use these exact hex codes
+const colors = {
+  background: '#000000',      // Black
+  foreground: '#FFFFFF',      // White
+  primary: '#8B5CF6',         // Purple
+  secondary: '#6366F1',       // Indigo
+  accent: '#EC4899',          // Pink
+  muted: '#9CA3AF',           // Gray
+  border: '#1a1a1a',          // Dark gray
+}
+```
+
+### Typography
+- **Font:** Nohemi (primary), fallback to Inter/Montserrat
+- **Logo:** "sipher" (lowercase, no asterisk in code)
+- **Headers:** Nohemi Bold, 48-64pt
+- **Body:** Nohemi Regular, 16-24pt
+- **Code/Stats:** JetBrains Mono
+
+### Spacing
+- Consistent margins: 80px top/bottom
+- Container max-width: 1280px
+- Section padding: py-32 (128px)
+- Component spacing: gap-6 (24px)
+
+## Code Style Rules
+
+### TypeScript
+- Always use TypeScript, never JavaScript
+- Strict type checking enabled
+- Prefer interfaces over types for objects
+- Export types separately from components
+- Use `const` by default, `let` only when necessary
+
+### React Components
+```typescript
+// ✅ GOOD: Server component by default
+export default async function Page() {
+  const data = await fetchData()
+  return <div>{data}</div>
+}
+
+// ✅ GOOD: Client component when needed
+'use client'
+import { useState } from 'react'
+
+export function ClientComponent() {
+  const [state, setState] = useState()
+  return <div>{state}</div>
+}
+
+// ❌ BAD: Don't use 'use client' unnecessarily
+```
+
+### Naming Conventions
+- Components: PascalCase (`WaitlistModal.tsx`)
+- Files: kebab-case (`waitlist-modal.tsx`)
+- Functions: camelCase (`handleSubmit`)
+- Constants: UPPER_SNAKE_CASE (`ADMIN_SECRET`)
+- CSS classes: Use Tailwind utilities only
+
+### Import Order
+```typescript
+// 1. React/Next imports
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+// 2. Third-party libraries
+import { motion } from 'framer-motion'
+import { toast } from 'sonner'
+
+// 3. Internal components
+import { Button } from '@/components/ui/button'
+import { Logo } from '@/components/shared/logo'
+
+// 4. Utils and types
+import { cn } from '@/lib/utils'
+import type { WaitlistUser } from '@/types'
+
+// 5. Styles (if any)
+import './styles.css'
+```
+
+## Database & Supabase
+
+### Table Naming
+- Use snake_case: `waitlist_users`, `profiles`
+- Singular for lookup tables: `user_role`
+- Timestamps: `created_at`, `updated_at` (always TIMESTAMPTZ)
+
+### Supabase Clients
+```typescript
+// ✅ Client-side (browser)
+import { createClient } from '@/lib/supabase/client'
+
+// ✅ Server-side (server components, API routes)
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+
+// ✅ Admin operations (bypass RLS)
+import { createAdminClient } from '@/lib/supabase/server'
+
+// ❌ NEVER use localStorage or sessionStorage in artifacts
+// Use React state instead
+```
+
+### Row Level Security (RLS)
+- Always enable RLS on tables
+- Service role bypasses RLS (use carefully)
+- Policies: `SELECT`, `INSERT`, `UPDATE`, `DELETE`
+
+## API Routes
+
+### Structure
+```typescript
+// app/api/[route]/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    // Validate with Zod
+    // Process request
+    // Return success
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error:', error)
+    return NextResponse.json(
+      { error: 'Error message' },
+      { status: 500 }
+    )
+  }
+}
+```
+
+### Validation
+- Always use Zod schemas for validation
+- Validate on both client and server
+- Return clear error messages
+
+```typescript
+import { z } from 'zod'
+
+const schema = z.object({
+  email: z.string().email('Invalid email'),
+  name: z.string().min(2, 'Name too short'),
+})
+
+const data = schema.parse(body) // Throws on invalid
+```
+
+## Authentication
+
+### OAuth Flow
+1. Google OAuth sign-in (no passwords)
+2. Redirect to callback handler
+3. Exchange code for session
+4. Redirect to appropriate page
+
+### Protected Routes
+```typescript
+// In layout.tsx or page.tsx
+const supabase = await createServerSupabaseClient()
+const { data: { user } } = await supabase.auth.getUser()
+
+if (!user) {
+  redirect('/')
+}
+```
+
+### Magic Links (for activation)
+```typescript
+const { data: magicLink } = await supabase.auth.admin.generateLink({
+  type: 'magiclink',
+  email: user.email,
+  options: {
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+  },
+})
+```
+
+## Email Templates
+
+### Structure
+- HTML emails only (better deliverability)
+- Inline CSS (email clients strip <style>)
+- Max width: 600px
+- Dark theme: Black background, white text
+- Brand colors: Purple accents
+
+### Template Pattern
+```typescript
+export function templateName(props: Props) {
+  return {
+    subject: 'Email subject',
+    html: `<!DOCTYPE html>
+      <html>
+        <body style="background:#000;color:#fff;">
+          <!-- Email content -->
+        </body>
+      </html>
+    `,
+  }
+}
+```
+
+## Styling Rules
+
+### Tailwind Best Practices
+```typescript
+// ✅ GOOD: Use core Tailwind classes only
+<div className="bg-black text-white p-8 rounded-xl">
+
+// ✅ GOOD: Use cn() for conditional classes
+<div className={cn(
+  "base-classes",
+  isActive && "active-classes"
+)}>
+
+// ❌ BAD: Custom CSS (we don't have compiler)
+<div className="custom-gradient-button">
+
+// ❌ BAD: Inline styles (use Tailwind instead)
+<div style={{ backgroundColor: 'black' }}>
+```
+
+### Component Styling
+- Use shadcn/ui components when possible
+- Customize with Tailwind classes
+- Dark theme by default
+- Purple (#8B5CF6) for primary actions
+- High contrast for accessibility
+
+### Animations
+```typescript
+// Use Framer Motion for complex animations
+import { motion } from 'framer-motion'
+
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5 }}
+>
+```
+
+## Error Handling
+
+### Client-Side
+```typescript
+// Use toast for user feedback
+import { toast } from 'sonner'
+
+try {
+  await action()
+  toast.success('Success message')
+} catch (error) {
+  console.error('Error:', error)
+  toast.error('User-friendly error message')
+}
+```
+
+### Server-Side
+```typescript
+// Always wrap in try-catch
+try {
+  const result = await operation()
+  return NextResponse.json({ success: true, result })
+} catch (error) {
+  console.error('Server error:', error)
+  return NextResponse.json(
+    { error: 'Something went wrong' },
+    { status: 500 }
+  )
+}
+```
+
+## Performance
+
+### Image Optimization
+```typescript
+// Use Next.js Image component
+import Image from 'next/image'
+
+<Image
+  src="/image.png"
+  alt="Description"
+  width={1200}
+  height={630}
+  priority={isAboveFold}
+/>
+```
+
+### Code Splitting
+- Server components by default (automatic code splitting)
+- Use dynamic imports for heavy client components
+```typescript
+import dynamic from 'next/dynamic'
+
+const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
+  loading: () => <p>Loading...</p>
+})
+```
+
+## Security
+
+### Environment Variables
+```typescript
+// ✅ GOOD: Server-side secrets
+process.env.SUPABASE_SERVICE_ROLE_KEY
+process.env.RESEND_API_KEY
+process.env.ADMIN_SECRET
+
+// ✅ GOOD: Public variables (prefixed with NEXT_PUBLIC_)
+process.env.NEXT_PUBLIC_SUPABASE_URL
+process.env.NEXT_PUBLIC_APP_URL
+
+// ❌ BAD: Exposing secrets to client
+const secret = process.env.SECRET_KEY // in client component
+```
+
+### Admin Operations
+- Always check authorization
+- Use admin secret for manual approvals
+- Log all admin actions
+
+```typescript
+const authHeader = request.headers.get('authorization')
+if (authHeader !== `Bearer ${process.env.ADMIN_SECRET}`) {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+}
+```
+
+## Critical Restrictions
+
+### NEVER DO THIS:
+❌ Use localStorage/sessionStorage in artifacts (not supported)
+❌ Use custom CSS (no Tailwind compiler access)
+❌ Import libraries not in approved list
+❌ Create passwords/usernames (Google OAuth only)
+❌ Expose secrets to client-side code
+❌ Skip error handling in API routes
+❌ Forget to enable RLS on Supabase tables
+❌ Use 'use client' unnecessarily
+
+### ALWAYS DO THIS:
+✅ Use TypeScript with strict mode
+✅ Validate all inputs with Zod
+✅ Handle errors gracefully
+✅ Use Supabase for all data operations
+✅ Follow route group structure
+✅ Use shadcn/ui components
+✅ Apply proper RLS policies
+✅ Test authentication flows
+
+## Product Context
+
+### Core Features
+1. **BuilderLog:** 30-second daily execution logging
+2. **ProofCard:** Execution score (Consistency + Velocity + Engagement)
+3. **Pulse:** Real-time builder activity feed across India
+4. **The Forge:** High-trust founder community
+
+### User Flow
+1. Landing page → Google OAuth
+2. Onboarding (name, startup, stage, city)
+3. Waitlist dashboard (queue position, live pulse, edit profile)
+4. Email confirmation
+5. Manual approval by admin
+6. Activation email with magic link
+7. Dashboard access (BuilderLog, ProofCard, Pulse, Forge)
+
+### Target Audience
+- Indian founders (18-35 years old)
+- Building in public
+- Seeking VC funding
+- Tier-1 and Tier-2 cities
+- Technical and non-technical backgrounds
+
+## Communication Style
+
+### User-Facing Content
+- Direct, honest, founder-to-founder tone
+- No corporate jargon
+- No manipulation tactics (referral spam, FOMO)
+- Emphasis on execution over credentials
+- Proof over promises
+
+### Error Messages
+- Be helpful, not technical
+- "Failed to load data" ❌
+- "We couldn't load your profile. Please refresh." ✅
+
+## Testing Checklist
+
+Before deploying any feature:
+- ✅ TypeScript compiles without errors
+- ✅ All API routes have error handling
+- ✅ Auth flow works (sign in → dashboard)
+- ✅ Email templates render correctly
+- ✅ Mobile responsive (test at 375px)
+- ✅ Loading states implemented
+- ✅ Error states handled
+- ✅ Empty states designed
+
+## Git Workflow
+
+### Commit Messages
+```bash
+# Format: type(scope): message
+
+feat(waitlist): add dashboard with live pulse
+fix(auth): handle expired magic links
+style(landing): update hero section colors
+docs(readme): add setup instructions
+refactor(api): extract validation logic
+```
+
+### Branch Naming
+- `feature/waitlist-dashboard`
+- `fix/auth-callback-redirect`
+- `style/landing-page-hero`
+
+## Common Patterns
+
+### Loading State
+```typescript
+const [loading, setLoading] = useState(false)
+
+async function handleAction() {
+  setLoading(true)
+  try {
+    await action()
+  } finally {
+    setLoading(false)
+  }
+}
+```
+
+### Form Handling
+```typescript
+const form = useForm({
+  resolver: zodResolver(schema),
+  defaultValues: { ... }
+})
+
+async function onSubmit(data: FormData) {
+  try {
+    await submitData(data)
+    toast.success('Saved!')
+  } catch (error) {
+    toast.error('Failed to save')
+  }
+}
+```
+
+### Data Fetching
+```typescript
+// Server Component
+async function getData() {
+  const supabase = await createServerSupabaseClient()
+  const { data } = await supabase.from('table').select()
+  return data
+}
+
+// Client Component
+const [data, setData] = useState([])
+
+useEffect(() => {
+  async function fetchData() {
+    const supabase = createClient()
+    const { data } = await supabase.from('table').select()
+    setData(data)
+  }
+  fetchData()
+}, [])
+```
+
+## When in Doubt
+
+1. **Check existing code** - Follow established patterns
+2. **Server-first** - Use server components unless interactivity needed
+3. **Tailwind-only** - No custom CSS
+4. **Type everything** - No `any` types
+5. **Handle errors** - Always try-catch
+6. **Validate inputs** - Use Zod schemas
+7. **Ask for clarification** - Don't assume requirements
+
+## Project-Specific Notes
+
+### Sipher Brand Voice
+- Builders over talkers
+- Execution over credentials
+- Proof over promises
+- Daily shipping matters
+- For Indian founders, by Indian founders
+
+### Launch Strategy
+- Invite-only beta (first 50 founders)
+- Hyderabad-first, then pan-India
+- February 1, 2026 launch date
+- Manual approval for quality control
+- No referral gamification
+
+Remember: We're building infrastructure for India's builder economy. Every feature should make execution more visible and credible.

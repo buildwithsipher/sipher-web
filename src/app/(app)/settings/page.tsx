@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import type { User } from '@supabase/supabase-js'
+import type { Profile } from '@/types/database'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,8 +15,8 @@ import { Loader2 } from 'lucide-react'
 export default function SettingsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -48,10 +50,9 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setSaving(true)
     try {
-      const supabase = createClient()
       // Update profile logic here
       toast.success('Settings saved')
-    } catch (error) {
+    } catch {
       toast.error('Failed to save settings')
     } finally {
       setSaving(false)
