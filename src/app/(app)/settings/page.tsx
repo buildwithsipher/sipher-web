@@ -40,11 +40,17 @@ export default function SettingsPage() {
       setUser(user)
 
       // Load profile
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single()
+
+      if (profileError || !profileData) {
+        toast.error('Failed to load profile')
+        setLoading(false)
+        return
+      }
 
       setProfile(profileData)
       setLoading(false)

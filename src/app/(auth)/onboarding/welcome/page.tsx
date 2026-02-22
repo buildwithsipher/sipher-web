@@ -44,13 +44,13 @@ export default function OnboardingWelcomePage() {
         setUser(authUser)
 
         // Fetch waitlist user data
-        const { data: waitlistData } = await supabase
+        const { data: waitlistData, error: waitlistError } = await supabase
           .from('waitlist_users')
           .select('*')
           .eq('email', authUser.email)
           .single()
 
-        if (!waitlistData) {
+        if (waitlistError || !waitlistData) {
           router.push('/?error=waitlist-entry-not-found')
           return
         }
