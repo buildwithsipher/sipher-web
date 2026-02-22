@@ -129,6 +129,99 @@ import type { WaitlistUser } from '@/types'
 import './styles.css'
 ```
 
+## TypeScript State Management
+
+### Profile/User State Updates
+
+When updating state that can be null, ALWAYS check first:
+```typescript
+// ❌ BAD: Can cause type errors
+onChange={e => setState({ ...state, field: e.target.value })}
+
+// ✅ GOOD: Null-safe
+onChange={e => {
+  if (!state) return
+  setState({ ...state, field: e.target.value })
+}}
+
+// ✅ BETTER: Use helper function
+const updateState = (updates: Partial<StateType>) => {
+  if (!state) return
+  setState({ ...state, ...updates })
+}
+
+onChange={e => updateState({ field: e.target.value })}
+
+// ✅ BEST: Separate form state
+const [formData, setFormData] = useState<Partial<StateType>>({})
+onChange={e => setFormData(prev => ({ ...prev, field: e.target.value }))}
+```
+
+### Required vs Optional Fields
+
+When defining types, be explicit:
+```typescript
+// ❌ AVOID: Confusing optional required fields
+interface Profile {
+  id?: string  // Is this actually optional?
+}
+
+// ✅ GOOD: Clear distinction
+interface Profile {
+  id: string              // Required
+  bio: string | null      // Nullable (can be null)
+  avatar_url?: string     // Optional (might not exist)
+}
+```
+
+### Supabase Query Results
+
+Supabase queries can return null, handle it:
+```typescript
+// ❌ BAD: Assumes data exists
+const { data } = await supabase.from('profiles').select().single()
+setProfile(data)  // data could be null!
+
+// ✅ GOOD: Check before setting
+const { data, error } = await supabase.from('profiles').select().single()
+if (error || !data) {
+  toast.error('Failed to load profile')
+  return
+}
+setProfile(data)  // Now TypeScript knows it's not null
+```
+
+### Form Handling Pattern
+
+For editable forms, use this pattern:
+```typescript
+// 1. Server state (source of truth)
+const [profile, setProfile] = useState<Profile | null>(null)
+
+// 2. Form state (what user is editing)
+const [formData, setFormData] = useState<Partial<Profile>>({})
+
+// 3. Initialize form when server data loads
+useEffect(() => {
+  if (profile) setFormData(profile)
+}, [profile])
+
+// 4. Handle changes in form state only
+const handleChange = (field: keyof Profile, value: any) => {
+  setFormData(prev => ({ ...prev, [field]: value }))
+}
+
+// 5. Save commits form state to server state
+const handleSave = async () => {
+  if (!profile) return
+  const updated = { ...profile, ...formData }
+  // Save to Supabase
+  setProfile(updated)
+}
+```
+
+This prevents type errors and improves UX.
+
 ## Database & Supabase
 
 ### Table Naming
