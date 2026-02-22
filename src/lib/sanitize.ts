@@ -1,40 +1,37 @@
 /**
  * Input sanitization utilities (Server-side)
  * Prevents XSS and ensures data integrity
+ *
+ * Note: Uses regex-based sanitization instead of DOMPurify to avoid
+ * jsdom dependency issues in serverless environments (Vercel)
  */
-
-import createDOMPurify from 'isomorphic-dompurify'
-
-// Create DOMPurify instance that works on both server and client
-// isomorphic-dompurify automatically detects environment and uses appropriate implementation
-let DOMPurify: ReturnType<typeof createDOMPurify>
-
-try {
-  DOMPurify = createDOMPurify()
-  // Verify DOMPurify has sanitize method
-  if (!DOMPurify || typeof DOMPurify.sanitize !== 'function') {
-    throw new Error('DOMPurify.sanitize is not a function')
-  }
-} catch (error) {
-  console.error('DOMPurify initialization failed:', error)
-  // Fallback sanitizer (simple HTML tag stripper)
-  DOMPurify = {
-    sanitize: (html: string) => {
-      if (typeof html !== 'string') return ''
-      // Strip HTML tags using regex (less secure but works as fallback)
-      return html.replace(/<[^>]*>/g, '').trim()
-    },
-  } as ReturnType<typeof createDOMPurify>
-}
 
 /**
  * Sanitize HTML content (removes scripts, dangerous tags)
+ * Server-side implementation that doesn't require jsdom
  */
 export function sanitizeHtml(html: string): string {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [], // No HTML tags allowed
-    ALLOWED_ATTR: [],
-  })
+  if (typeof html !== 'string') return ''
+
+  // Remove all HTML tags
+  let sanitized = html.replace(/<[^>]*>/g, '')
+
+  // Decode HTML entities
+  sanitized = sanitized
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    .replace(/&#x60;/g, '`')
+    .replace(/&#x3D;/g, '=')
+
+  // Remove any remaining script-like content
+  sanitized = sanitized.replace(/javascript:/gi, '')
+  sanitized = sanitized.replace(/on\w+\s*=/gi, '')
+
+  return sanitized.trim()
 }
 
 /**
