@@ -10,8 +10,9 @@ import { logError, logWarn } from '@/lib/logger'
 import { auditLog } from '@/lib/audit'
 import { sanitizeName, sanitizeText, sanitizeUrl, sanitizeTagline } from '@/lib/sanitize'
 
-// Route is dynamic by default in Next.js 16
-// Removed explicit runtime to match working state (commit d694fc7)
+// Force Node.js runtime - required for Supabase admin client and Resend
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 const waitlistSchema = z.object({
   email: z.string().email('Invalid email address').toLowerCase().trim(),
