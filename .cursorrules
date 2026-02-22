@@ -385,30 +385,111 @@ import { motion } from 'framer-motion'
 
 ## Error Handling
 
+### Catch Block Error Typing
+
+In TypeScript strict mode, errors in catch blocks are type `unknown`.
+
+### ❌ WRONG - Don't do this:
+```typescript
+try {
+  await something()
+} catch (error) {
+  console.log(error.message)  // ❌ Error: 'error' is unknown
+  toast.error(error.message)  // ❌ Error: 'error' is unknown
+}
+```
+
+### ✅ CORRECT - Type guard first:
+```typescript
+try {
+  await something()
+} catch (error) {
+  // Option 1: Inline type guard
+  const message = error instanceof Error ? error.message : 'Unknown error'
+  console.error(message)
+  
+  // Option 2: Use helper function (RECOMMENDED)
+  console.error(getErrorMessage(error))
+  
+  // Option 3: Type assertion (only if certain)
+  const err = error as Error
+  console.error(err.message)
+}
+```
+
+### ✅ BEST - Use error handler helpers:
+```typescript
+// Import from src/lib/errors.ts
+import { getErrorMessage, logError } from '@/lib/errors'
+
+try {
+  await something()
+} catch (error) {
+  logError('User activation', error)
+  toast.error(getErrorMessage(error))
+}
+```
+
+### Common Error Patterns
+
+**Supabase Errors:**
+```typescript
+try {
+  const { data, error } = await supabase.from('table').select()
+  if (error) throw error
+} catch (error) {
+  const message = getErrorMessage(error)
+  toast.error(message)
+}
+```
+
+**Fetch/API Errors:**
+```typescript
+try {
+  const res = await fetch('/api/endpoint')
+  if (!res.ok) {
+    const data = await res.json()
+    throw new Error(data.error || 'Request failed')
+  }
+} catch (error) {
+  const message = getErrorMessage(error)
+  toast.error(message)
+}
+```
+
+**Always include:**
+1. ✅ Type guard or helper function
+2. ✅ Console.error for debugging
+3. ✅ User-friendly error message
+4. ✅ Context about what failed
+
 ### Client-Side
 ```typescript
 // Use toast for user feedback
 import { toast } from 'sonner'
+import { getErrorMessage, logError } from '@/lib/errors'
 
 try {
   await action()
   toast.success('Success message')
 } catch (error) {
-  console.error('Error:', error)
-  toast.error('User-friendly error message')
+  logError('Action context', error)
+  toast.error(getErrorMessage(error))
 }
 ```
 
 ### Server-Side
 ```typescript
 // Always wrap in try-catch
+import { getErrorMessage } from '@/lib/errors'
+
 try {
   const result = await operation()
   return NextResponse.json({ success: true, result })
 } catch (error) {
   console.error('Server error:', error)
   return NextResponse.json(
-    { error: 'Something went wrong' },
+    { error: getErrorMessage(error) },
     { status: 500 }
   )
 }
