@@ -225,7 +225,22 @@ export default function WaitlistDashboard() {
       cities: uniqueCities.size || 0,
       avgStage: 'MVP',
     })
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchUserData()
+    fetchLiveActivities()
+    fetchCommunityStats()
+
+    // Poll for live activities updates every 30 seconds
+    const interval = setInterval(() => {
+      fetchLiveActivities()
+    }, 30000)
+
+    return () => {
+      clearInterval(interval)
+    }
+  }, [fetchUserData, fetchLiveActivities, fetchCommunityStats])
 
   async function handleSaveProfile() {
     try {
