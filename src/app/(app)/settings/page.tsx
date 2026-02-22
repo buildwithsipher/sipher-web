@@ -19,6 +19,12 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [saving, setSaving] = useState(false)
 
+  // Helper function to safely update profile
+  const updateProfile = (updates: Partial<Profile>) => {
+    if (!profile) return
+    setProfile({ ...profile, ...updates })
+  }
+
   useEffect(() => {
     async function loadUser() {
       const supabase = createClient()
@@ -90,7 +96,7 @@ export default function SettingsPage() {
                 id="name"
                 type="text"
                 value={profile?.full_name || ''}
-                onChange={e => setProfile({ ...profile, full_name: e.target.value })}
+                onChange={e => updateProfile({ full_name: e.target.value })}
                 className="mt-2"
               />
             </div>
@@ -101,7 +107,7 @@ export default function SettingsPage() {
                 id="startup"
                 type="text"
                 value={profile?.startup_name || ''}
-                onChange={e => setProfile({ ...profile, startup_name: e.target.value })}
+                onChange={e => updateProfile({ startup_name: e.target.value })}
                 className="mt-2"
               />
             </div>
