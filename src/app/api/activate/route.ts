@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { auditLog } from '@/lib/audit'
 import { logError, logWarn } from '@/lib/logger'
+import { getErrorMessage } from '@/lib/errors'
 
 /**
  * Secure activation endpoint (POST)
@@ -239,6 +240,7 @@ export async function POST(request: NextRequest) {
     logError('Activation error', error, {
       action: 'activation_unexpected_error',
     })
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    const errorMessage = getErrorMessage(error)
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

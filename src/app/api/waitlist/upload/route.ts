@@ -4,6 +4,7 @@ import { checkRateLimit } from '@/lib/rate-limit'
 import { processImage, getOptimalFormat } from '@/lib/image-processor'
 import { scanFile } from '@/lib/virus-scan'
 import { logError, logWarn } from '@/lib/logger'
+import { getErrorMessage } from '@/lib/errors'
 
 export async function POST(request: NextRequest) {
   try {
@@ -198,7 +199,7 @@ export async function POST(request: NextRequest) {
     // Upload to Supabase Storage (processed or original)
     // Supabase Storage accepts File, Blob, ArrayBuffer, or Buffer
     let fileToUpload: File | Buffer | ArrayBuffer
-    const uploadOptions: any = {
+    const uploadOptions: { cacheControl: string; upsert: boolean; contentType?: string } = {
       cacheControl: '3600',
       upsert: false,
     }
@@ -301,6 +302,7 @@ export async function POST(request: NextRequest) {
     logError('Unexpected upload error', error, {
       action: 'file_upload_unexpected',
     })
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    const errorMessage = getErrorMessage(error)
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

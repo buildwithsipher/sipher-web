@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { nanoid } from 'nanoid'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { logError, logWarn } from '@/lib/logger'
+import { getErrorMessage } from '@/lib/errors'
 import { auditLog } from '@/lib/audit'
 import { sanitizeName, sanitizeText, sanitizeUrl, sanitizeTagline } from '@/lib/sanitize'
 
@@ -363,7 +364,7 @@ export async function POST(request: NextRequest) {
       hasBody: !!body,
     })
 
-    const errorMessage = error instanceof Error ? error.message : 'Something went wrong'
+    const errorMessage = getErrorMessage(error)
     return NextResponse.json(
       { error: errorMessage },
       {

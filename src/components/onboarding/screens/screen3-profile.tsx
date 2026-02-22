@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight, ArrowLeft, Upload, Edit2, Linkedin, Link as LinkIcon } from 'lucide-react'
 import { toast } from 'sonner'
+import { getErrorMessage, logError } from '@/lib/errors'
 import { SkipButton } from '../enhancements/skip-button'
 import { MagneticButton } from '../enhancements/magnetic-button'
 import { RippleEffect } from '../enhancements/ripple-effect'
@@ -82,8 +83,8 @@ export function OnboardingScreen3({ onNext, onBack, onSkip, formData, setFormDat
 
       toast.success('Image uploaded successfully')
     } catch (error) {
-      console.error('Upload error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to upload image'
+      logError('Image upload', error)
+      const errorMessage = getErrorMessage(error)
       toast.error(errorMessage)
     } finally {
       setUploading(null)

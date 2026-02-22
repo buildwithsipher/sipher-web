@@ -495,6 +495,46 @@ try {
 }
 ```
 
+## Error Handling - Utility Functions
+
+### getErrorMessage Usage
+
+The `getErrorMessage()` utility ALWAYS returns a non-empty string.
+It has internal fallbacks, so no additional `||` operator is needed.
+```typescript
+// ✅ CORRECT
+const errorMessage = getErrorMessage(error)
+toast.error(errorMessage)
+
+// ❌ WRONG - Redundant
+const errorMessage = getErrorMessage(error) || 'Something went wrong'
+```
+
+### When || is Actually Needed
+
+Only use `||` when the function might genuinely return a falsy value:
+```typescript
+// ✅ Needed - user input might be empty
+const name = formData.name || 'Anonymous'
+
+// ✅ Needed - optional field from database
+const bio = profile.bio || 'No bio provided'
+
+// ❌ Not needed - our utility guarantees a string
+const error = getErrorMessage(err) || 'fallback'
+```
+
+### Nullish Coalescing (??) vs OR (||)
+
+Use `??` for null/undefined checks, `||` for falsy checks:
+```typescript
+// Use ?? when you want to keep empty strings, 0, false
+const count = data.count ?? 0  // 0 is valid, only default if null/undefined
+
+// Use || when you want to replace ALL falsy values
+const name = user.name || 'Guest'  // Empty string → 'Guest'
+```
+
 ## Performance
 
 ### Image Optimization

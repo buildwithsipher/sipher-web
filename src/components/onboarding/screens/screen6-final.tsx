@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Sparkles, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
+import { getErrorMessage, logError } from '@/lib/errors'
 import { useRouter } from 'next/navigation'
 
 interface OnboardingFormData {
@@ -91,9 +92,9 @@ export function OnboardingScreen6({ onComplete, onBack, formData }: Screen6Props
         router.push('/dashboard')
       }, 500)
     } catch (error) {
-      console.error('Completion error:', error)
-      // Generic error message (don't expose details)
-      toast.error('Failed to complete onboarding. Please try again.')
+      logError('Onboarding completion', error)
+      const errorMessage = getErrorMessage(error)
+      toast.error(errorMessage)
       setIsCompleting(false)
     }
   }
@@ -155,7 +156,9 @@ export function OnboardingScreen6({ onComplete, onBack, formData }: Screen6Props
         >
           <div className="flex items-center justify-center gap-2 mb-4">
             <Sparkles className="w-6 h-6 text-[#7B5CFF]" />
-            <h1 className="text-5xl md:text-6xl font-light text-white">You&apos;re ready, builder.</h1>
+            <h1 className="text-5xl md:text-6xl font-light text-white">
+              You&apos;re ready, builder.
+            </h1>
             <Sparkles className="w-6 h-6 text-[#7B5CFF]" />
           </div>
           <p className="text-xl md:text-2xl text-white/60 font-light leading-relaxed">

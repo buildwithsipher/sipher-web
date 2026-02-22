@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
+import { getErrorMessage, logError } from '@/lib/errors'
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
@@ -25,8 +26,8 @@ export default function LoginPage() {
         },
       })
       if (error) {
-        console.error('Google login error:', error.message)
-        setError(error.message || 'Failed to initiate Google login. Please try again.')
+        logError('Google login', error)
+        setError(getErrorMessage(error))
       } else if (data?.url) {
         // Redirect to Google OAuth
         window.location.href = data.url
@@ -34,8 +35,8 @@ export default function LoginPage() {
         setError('Unable to start Google login. Please check your configuration.')
       }
     } catch (err) {
-      console.error('Unexpected login error:', err)
-      setError('An unexpected error occurred. Please try again.')
+      logError('Unexpected login error', err)
+      setError(getErrorMessage(err))
     }
   }
 

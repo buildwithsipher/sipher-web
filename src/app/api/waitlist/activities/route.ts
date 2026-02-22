@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient, createServerSupabaseClient } from '@/lib/supabase/server'
 import { logError } from '@/lib/logger'
+import { getErrorMessage } from '@/lib/errors'
 
 export async function GET(request: NextRequest) {
   try {
@@ -54,6 +55,7 @@ export async function GET(request: NextRequest) {
     logError('Unexpected error fetching activities', error, {
       action: 'fetch_activities_unexpected',
     })
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    const errorMessage = getErrorMessage(error)
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

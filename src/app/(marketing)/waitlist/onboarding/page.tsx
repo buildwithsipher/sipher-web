@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
+import { getErrorMessage, logError } from '@/lib/errors'
 import { OnboardingScreen2 } from '@/components/onboarding/Screen2'
 import { OnboardingScreen3 } from '@/components/onboarding/Screen3'
 import { OnboardingScreen4 } from '@/components/onboarding/Screen4'
@@ -183,8 +184,8 @@ export default function OnboardingPage() {
       // Move to success screen
       setCurrentScreen(5)
     } catch (error) {
-      console.error('Submission error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Something went wrong'
+      logError('Waitlist submission', error)
+      const errorMessage = getErrorMessage(error)
       alert(errorMessage)
     }
   }

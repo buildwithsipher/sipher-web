@@ -3,6 +3,7 @@ import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/se
 import { checkRateLimit } from '@/lib/rate-limit'
 import { auditLog } from '@/lib/audit'
 import { logError, logWarn } from '@/lib/logger'
+import { getErrorMessage } from '@/lib/errors'
 import { sanitizeName, sanitizeText, sanitizeUrl, sanitizeTagline } from '@/lib/sanitize'
 import { z } from 'zod'
 
@@ -78,11 +79,14 @@ export async function POST(request: NextRequest) {
     let validatedData
     try {
       validatedData = profileUpdateSchema.parse(body)
-    } catch (validationError: any) {
+    } catch (validationError) {
+      const zodError = validationError as {
+        errors?: Array<{ path: (string | number)[]; message: string }>
+      }
       return NextResponse.json(
         {
           error: 'Validation failed',
-          details: validationError.errors?.map((e: any) => ({
+          details: zodError.errors?.map(e => ({
             field: e.path.join('.'),
             message: e.message,
           })),
@@ -92,7 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Sanitize all inputs
-    const sanitizedData: any = {}
+    const sanitizedData: Record<string, string> = {}
     if (validatedData.name) sanitizedData.name = sanitizeName(validatedData.name)
     if (validatedData.startup_name)
       sanitizedData.startup_name = sanitizeName(validatedData.startup_name)
@@ -149,10 +153,11 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Profile updated successfully',
     })
-  } catch (error: any) {
+  } catch (error) {
     logError('Profile update error', error, {
       action: 'profile_update_unexpected',
     })
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    const errorMessage = getErrorMessage(error)
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

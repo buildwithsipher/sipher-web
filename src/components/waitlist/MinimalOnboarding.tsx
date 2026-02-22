@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { getErrorMessage, logError } from '@/lib/errors'
 import { Logo } from '@/components/shared/logo'
 import { trackWaitlistSignup, trackFormStart } from '@/lib/analytics/posthog'
 import { track } from '@vercel/analytics'
@@ -104,7 +105,7 @@ export default function MinimalOnboarding() {
           setWaitlistCount(data.count || 0)
         }
       } catch (error) {
-        console.error('Failed to fetch waitlist count:', error)
+        logError('Fetch waitlist count', error)
       }
     }
     fetchCount()
@@ -160,8 +161,8 @@ export default function MinimalOnboarding() {
 
       if (error) throw error
     } catch (error) {
-      console.error('Sign in error:', error)
-      toast.error('Failed to sign in with Google')
+      logError('Google sign in', error)
+      toast.error(getErrorMessage(error))
       setLoading(false)
     }
   }
@@ -353,8 +354,7 @@ export default function MinimalOnboarding() {
         console.error('Failed to capture error in Sentry:', sentryError)
       }
 
-      const errorMessage =
-        error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+      const errorMessage = getErrorMessage(error)
       toast.error(errorMessage)
       setLoading(false)
     }

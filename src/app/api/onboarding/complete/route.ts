@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     let validatedData
     try {
       validatedData = onboardingCompleteSchema.parse(sanitizedData)
-    } catch (validationError: any) {
+    } catch (validationError) {
       auditLog('validation_failed', user.id, {
         errors: validationError.errors,
         action: 'onboarding_complete',
@@ -237,10 +237,11 @@ export async function POST(request: NextRequest) {
       message: 'Onboarding completed successfully',
       handle: validatedData.handle,
     })
-  } catch (error: any) {
+  } catch (error) {
     logError('Unexpected onboarding completion error', error, {
       action: 'onboarding_complete_unexpected',
     })
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    const errorMessage = getErrorMessage(error)
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

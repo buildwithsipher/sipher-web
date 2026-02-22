@@ -30,6 +30,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { getErrorMessage, logError } from '@/lib/errors'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -130,8 +131,8 @@ export default function WaitlistDashboard() {
       .single()
 
     if (error) {
-      console.error('Waitlist fetch error:', error)
-      toast.error(error.message || 'Failed to load your data')
+      logError('Waitlist fetch', error)
+      toast.error(getErrorMessage(error))
       return
     }
 
@@ -323,8 +324,8 @@ export default function WaitlistDashboard() {
       // Refresh data
       fetchUserData()
     } catch (error) {
-      console.error('Upload error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to upload image'
+      logError('Image upload', error)
+      const errorMessage = getErrorMessage(error)
       toast.error(errorMessage)
 
       // Send to Sentry for monitoring

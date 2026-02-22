@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
+import { getErrorMessage, logError } from '@/lib/errors'
 import { Logo } from '@/components/shared/logo'
 import type { User } from '@supabase/supabase-js'
 
@@ -206,8 +207,8 @@ export default function WaitlistCompletePage() {
       // Redirect to waitlist dashboard
       router.push('/waitlist/dashboard')
     } catch (error) {
-      console.error('Submission error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Something went wrong'
+      logError('Waitlist completion', error)
+      const errorMessage = getErrorMessage(error)
       toast.error(errorMessage)
       setLoading(false)
     }

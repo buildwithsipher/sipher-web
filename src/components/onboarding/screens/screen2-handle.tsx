@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
+import { logError } from '@/lib/errors'
 import { MagneticButton } from '../enhancements/magnetic-button'
 import { RippleEffect } from '../enhancements/ripple-effect'
 import { SuccessAnimation } from '../enhancements/success-animation'
@@ -84,7 +85,7 @@ export function OnboardingScreen2({ onNext, onBack, formData, setFormData }: Scr
         const data = await response.json()
         setIsValid(data.available === true && handle.length >= 3 && handle.length <= 20)
       } catch (error) {
-        console.error('Handle check error:', error)
+        logError('Handle check', error)
         setIsValid(false)
       } finally {
         setIsChecking(false)

@@ -5,11 +5,12 @@ import { motion } from 'framer-motion'
 import { Logo } from '@/components/shared/logo'
 import { Chrome } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { getErrorMessage, logError } from '@/lib/errors'
 import { toast } from 'sonner'
 
 interface Screen1Props {
   onNext: () => void
-  user: any
+  user: { email?: string } | null
 }
 
 export function OnboardingScreen1({ onNext, user }: Screen1Props) {
@@ -34,8 +35,8 @@ export function OnboardingScreen1({ onNext, user }: Screen1Props) {
       if (error) throw error
       // Will redirect to Google OAuth
     } catch (error) {
-      console.error('Sign in error:', error)
-      toast.error('Failed to sign in with Google')
+      logError('Google sign in', error)
+      toast.error(getErrorMessage(error))
       setLoading(false)
     }
   }
@@ -64,7 +65,7 @@ export function OnboardingScreen1({ onNext, user }: Screen1Props) {
           transition={{ duration: 0.4, delay: 0.2 }}
           className="text-white/70 text-sm md:text-base"
         >
-          "Where founders turn execution → proof"
+          &quot;Where founders turn execution → proof&quot;
         </motion.p>
 
         {/* Waitlist Count Pill */}

@@ -9,6 +9,28 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 
+function handleActivationError(error: unknown): string {
+  // Handle known error types
+  if (error instanceof Error) {
+    // Check for specific Supabase errors
+    if (error.message.includes('expired')) {
+      return 'Activation link has expired. Please request a new one.'
+    }
+    if (error.message.includes('invalid')) {
+      return 'Invalid activation link. Please check your email.'
+    }
+    return error.message
+  }
+
+  // Handle error objects
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    return String(error.message)
+  }
+
+  // Fallback
+  return 'Failed to activate account. Please try again or contact support.'
+}
+
 function ActivateForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -19,76 +41,77 @@ function ActivateForm() {
   const [activationStatus, setActivationStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const hasAutoActivated = useRef(false)
 
-  const handleActivate = useCallback(async (tokenToActivate?: string, isAuto = false) => {
-    const tokenValue = tokenToActivate || token.trim()
+  const handleActivate = useCallback(
+    async (tokenToActivate?: string, isAuto = false) => {
+      const tokenValue = tokenToActivate || token.trim()
 
-    if (!tokenValue) {
-      if (!isAuto) {
-        toast.error('Please enter your activation token')
-      }
-      setAutoActivating(false)
-      return
-    }
-
-    setLoading(true)
-    if (isAuto) {
-      setAutoActivating(true)
-    }
-
-    try {
-      const response = await fetch('/api/activate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token: tokenValue }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Activation failed')
+      if (!tokenValue) {
+        if (!isAuto) {
+          toast.error('Please enter your activation token')
+        }
+        setAutoActivating(false)
+        return
       }
 
-      // Success - show success state briefly before redirect
-      setActivationStatus('success')
-      
-      if (data.magicLink) {
-        // Redirect to magic link for automatic login (best UX)
-        setTimeout(() => {
-          window.location.href = data.magicLink
-        }, 1000) // Brief delay to show success state
-      } else if (data.redirect) {
-        setTimeout(() => {
-          router.push(data.redirect)
-        }, 1000)
-      } else {
-        toast.success('Account activated! Please sign in.')
-        setTimeout(() => {
-          router.push('/')
-        }, 1500)
-      }
-    } catch (error) {
-      console.error('Activation error:', error)
-      setActivationStatus('error')
-      setAutoActivating(false)
-      
-      // Show error message
-      const errorMessage = error.message || 'Failed to activate account. Please check your token and try again.'
-      
+      setLoading(true)
       if (isAuto) {
-        // If auto-activation failed, show error but allow manual retry
-        toast.error(errorMessage, {
-          duration: 5000,
-          description: 'You can try entering the token manually below.',
-        })
-      } else {
-        toast.error(errorMessage)
+        setAutoActivating(true)
       }
-      
-      setLoading(false)
-    }
-  }, [router, token])
+
+      try {
+        const response = await fetch('/api/activate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token: tokenValue }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Activation failed')
+        }
+
+        // Success - show success state briefly before redirect
+        setActivationStatus('success')
+
+        if (data.magicLink) {
+          // Redirect to magic link for automatic login (best UX)
+          setTimeout(() => {
+            window.location.href = data.magicLink
+          }, 1000) // Brief delay to show success state
+        } else if (data.redirect) {
+          setTimeout(() => {
+            router.push(data.redirect)
+          }, 1000)
+        } else {
+          toast.success('Account activated! Please sign in.')
+          setTimeout(() => {
+            router.push('/')
+          }, 1500)
+        }
+      } catch (error) {
+        console.error('Activation error:', error)
+        const errorMessage = handleActivationError(error)
+        setActivationStatus('error')
+        setAutoActivating(false)
+
+        if (isAuto) {
+          // If auto-activation failed, show error but allow manual retry
+          toast.error(errorMessage, {
+            duration: 5000,
+            description: 'You can try entering the token manually below.',
+          })
+        } else {
+          toast.error(errorMessage)
+        }
+
+        setLoading(false)
+      }
+    },
+    [router, token]
+  )
 
   // Auto-activate if token is in URL (production-ready flow)
   useEffect(() => {

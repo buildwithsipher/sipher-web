@@ -259,6 +259,7 @@ function LandingPageContent() {
           setWaitlistCount(data.count || 0)
         }
       } catch (error) {
+        // Non-critical error, just log
         console.error('Failed to fetch waitlist count:', error)
       }
     }

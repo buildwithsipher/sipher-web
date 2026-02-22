@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { auditLog } from '@/lib/audit'
 import { logWarn } from '@/lib/logger'
+import { getErrorMessage } from '@/lib/errors'
 
 /**
  * Verify user has access to onboarding
@@ -75,8 +76,9 @@ export async function GET(request: NextRequest) {
       userId: user.id,
       email: user.email,
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Verify access error:', error)
-    return NextResponse.json({ error: 'Something went wrong', hasAccess: false }, { status: 500 })
+    const errorMessage = getErrorMessage(error)
+    return NextResponse.json({ error: errorMessage, hasAccess: false }, { status: 500 })
   }
 }

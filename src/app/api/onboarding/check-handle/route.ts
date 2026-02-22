@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     // Validate handle format
     try {
       handleSchema.parse(sanitizedHandle)
-    } catch (validationError: any) {
+    } catch (validationError) {
       return NextResponse.json(
         {
           error: 'Invalid handle format',
@@ -103,8 +103,9 @@ export async function POST(request: NextRequest) {
       available: isAvailable,
       // Don't return the handle to prevent confirmation
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Handle check error:', error)
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    const errorMessage = getErrorMessage(error)
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server'
 import { logError } from '@/lib/logger'
+import { getErrorMessage } from '@/lib/errors'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function GET(request: NextRequest) {
@@ -75,6 +76,7 @@ export async function GET(request: NextRequest) {
     logError('Unexpected error calculating position', error, {
       action: 'calculate_position_unexpected',
     })
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    const errorMessage = getErrorMessage(error)
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

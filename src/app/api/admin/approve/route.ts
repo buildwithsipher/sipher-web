@@ -161,6 +161,7 @@ export async function POST(request: NextRequest) {
     logError('Admin approval error', error, {
       action: 'admin_approve_error',
     })
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    const errorMessage = getErrorMessage(error)
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

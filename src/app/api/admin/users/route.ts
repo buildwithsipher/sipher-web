@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
+import { logError } from '@/lib/logger'
+import { getErrorMessage } from '@/lib/errors'
 
 export async function GET(request: NextRequest) {
   try {
@@ -53,7 +55,8 @@ export async function GET(request: NextRequest) {
       offset,
     })
   } catch (error) {
-    console.error('Users fetch error:', error)
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    logError('Users fetch error', error)
+    const errorMessage = getErrorMessage(error)
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

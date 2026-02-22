@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { logError } from '@/lib/logger'
+import { getErrorMessage } from '@/lib/errors'
 
 // Simple in-memory cache for count (1 minute TTL)
 // This reduces database load during high traffic
@@ -45,6 +46,7 @@ export async function GET(request: NextRequest) {
     logError('Unexpected error fetching waitlist count', error, {
       action: 'fetch_count_unexpected',
     })
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    const errorMessage = getErrorMessage(error)
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

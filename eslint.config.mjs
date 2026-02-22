@@ -13,6 +13,12 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Disable prefer-nullish-coalescing - getErrorMessage() always returns a string
+      "@typescript-eslint/prefer-nullish-coalescing": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

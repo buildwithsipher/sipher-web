@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { getErrorMessage, logError } from '@/lib/errors'
 import { toast } from 'sonner'
 import { FocusTrap } from '@/components/ui/focus-trap'
 import { Logo } from '@/components/shared/logo'
@@ -32,7 +33,7 @@ export function WaitlistModal({ onClose }: WaitlistModalProps) {
           setWaitlistCount(data.count || 0)
         }
       } catch (error) {
-        console.error('Failed to fetch waitlist count:', error)
+        logError('Fetch waitlist count', error)
       }
     }
     fetchCount()
@@ -57,8 +58,8 @@ export function WaitlistModal({ onClose }: WaitlistModalProps) {
       if (error) throw error
       // Modal will close on redirect
     } catch (error) {
-      console.error('Sign in error:', error)
-      toast.error('Failed to sign in with Google')
+      logError('Google sign in', error)
+      toast.error(getErrorMessage(error))
       setLoading(false)
     }
   }
@@ -98,7 +99,9 @@ export function WaitlistModal({ onClose }: WaitlistModalProps) {
             <div className="text-center space-y-6">
               <div className="space-y-3">
                 <Logo size="medium" />
-                <p className="text-white/60 text-sm">"Where founders turn execution → proof"</p>
+                <p className="text-white/60 text-sm">
+                  &quot;Where founders turn execution → proof&quot;
+                </p>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20">
                   <span className="text-xs text-purple-400">
                     {displayedCount > 100 ? `${displayedCount.toLocaleString()}+` : '100+'} founders

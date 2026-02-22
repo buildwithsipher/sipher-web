@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { getErrorMessage, logError } from '@/lib/errors'
 import { motion } from 'framer-motion'
 import {
   CheckCircle2,
@@ -75,8 +76,8 @@ export default function AdminPage() {
       setFilteredUsers(data.users || [])
       setTotal(data.total || 0)
     } catch (error) {
-      console.error('Fetch error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load users'
+      logError('Fetch users', error)
+      const errorMessage = getErrorMessage(error)
       toast.error(errorMessage)
     } finally {
       setLoading(false)
@@ -140,8 +141,8 @@ export default function AdminPage() {
       toast.success('User approved! Approval email sent.')
       fetchUsers() // Refresh list
     } catch (error) {
-      console.error('Approval error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to approve user'
+      logError('Approve user', error)
+      const errorMessage = getErrorMessage(error)
       toast.error(errorMessage)
     } finally {
       setApproving(null)

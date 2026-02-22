@@ -34,6 +34,7 @@ function SuccessContent() {
           url: referralUrl,
         })
       } catch (error) {
+        // Share API errors are non-critical, just log
         console.error('Share error:', error)
       }
     } else {
