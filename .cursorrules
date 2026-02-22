@@ -551,6 +551,42 @@ if (authHeader !== `Bearer ${process.env.ADMIN_SECRET}`) {
 }
 ```
 
+## Development Tools & Standards
+
+### Code Quality
+- ESLint for linting (configured for Next.js + TypeScript)
+- Prettier for formatting (run on save)
+- Husky + lint-staged for pre-commit hooks
+- All code must pass linting before commit
+
+### Error Tracking
+- Sentry for production error monitoring
+- Always add error boundaries around major features
+- Log errors with context: `Sentry.captureException(error, { extra: { userId, action } })`
+
+### Analytics
+- Vercel Analytics for page views
+- PostHog for product analytics and feature tracking
+- Track key events: `waitlist_joined`, `builder_log_created`, `profile_updated`
+
+### Database
+- Supabase CLI for migrations
+- Always generate TypeScript types after schema changes: `npm run db:types`
+- Never modify database directly in production (use migrations)
+
+### Testing (when implemented)
+- Vitest for unit tests
+- Test utilities and complex logic
+- API routes must have tests
+- Target 80% coverage for critical paths
+
+### Before Commit Checklist
+✅ Code formatted (Prettier runs automatically)
+✅ No ESLint errors
+✅ TypeScript compiles (`npm run type-check`)
+✅ Tests pass (when implemented)
+✅ No console.logs in production code
+
 ## Critical Restrictions
 
 ### NEVER DO THIS:
