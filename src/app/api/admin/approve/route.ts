@@ -7,6 +7,7 @@ import { generateActivationToken } from '@/lib/token-generator'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { auditLog } from '@/lib/audit'
 import { logError, logWarn } from '@/lib/logger'
+import { getErrorMessage } from '@/lib/errors'
 
 export async function POST(request: NextRequest) {
   try {

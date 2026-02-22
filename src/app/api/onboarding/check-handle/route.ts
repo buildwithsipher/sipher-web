@@ -4,6 +4,7 @@ import { checkRateLimit } from '@/lib/rate-limit'
 import { sanitizeHandle } from '@/lib/sanitize'
 import { handleSchema } from '@/lib/validation/onboarding'
 import { logWarn } from '@/lib/logger'
+import { getErrorMessage } from '@/lib/errors'
 
 /**
  * Check if a handle is available
