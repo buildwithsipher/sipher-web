@@ -141,7 +141,8 @@ export default function AdminPage() {
       fetchUsers() // Refresh list
     } catch (error) {
       console.error('Approval error:', error)
-      toast.error(error.message || 'Failed to approve user')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to approve user'
+      toast.error(errorMessage)
     } finally {
       setApproving(null)
     }
