@@ -87,11 +87,20 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  // Log request for debugging
+  console.log('[Waitlist API] POST request received', {
+    method: request.method,
+    url: request.url,
+    contentType: request.headers.get('content-type'),
+    accept: request.headers.get('accept'),
+  })
+
   let body: unknown = null
   try {
     // Check content type (allow charset parameter)
     const contentType = request.headers.get('content-type') || ''
     if (!contentType.includes('application/json')) {
+      console.log('[Waitlist API] Invalid content type:', contentType)
       return NextResponse.json(
         { error: 'Content-Type must be application/json' },
         {
