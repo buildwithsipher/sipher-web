@@ -4,6 +4,21 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  // Exclude browser-only packages from server bundles
+  serverExternalPackages: ['dompurify'],
+  // Webpack config to prevent bundling browser-only code in server routes
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Exclude dompurify and jsdom from server bundles
+      config.externals = config.externals || []
+      config.externals.push({
+        dompurify: 'commonjs dompurify',
+        jsdom: 'commonjs jsdom',
+        'isomorphic-dompurify': 'commonjs isomorphic-dompurify',
+      })
+    }
+    return config
+  },
 }
 
 // Make sure adding Sentry options is the last code to run before exporting
