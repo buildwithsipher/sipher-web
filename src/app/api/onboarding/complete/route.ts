@@ -11,6 +11,8 @@ import {
 } from '@/lib/sanitize'
 import { logError, logWarn, logInfo } from '@/lib/logger'
 import { auditLog } from '@/lib/audit'
+import { getErrorMessage } from '@/lib/errors'
+import { ZodError } from 'zod'
 
 /**
  * Complete onboarding flow
@@ -103,14 +105,26 @@ export async function POST(request: NextRequest) {
     try {
       validatedData = onboardingCompleteSchema.parse(sanitizedData)
     } catch (validationError) {
+      let errorCount = 0
+      let firstMessage = 'Validation failed'
+      let allErrors: unknown
+
+      if (validationError instanceof ZodError) {
+        errorCount = validationError.issues.length
+        firstMessage = validationError.issues[0]?.message ?? firstMessage
+        allErrors = validationError.issues
+      } else {
+        allErrors = getErrorMessage(validationError)
+      }
+
       auditLog('validation_failed', user.id, {
-        errors: validationError.errors,
+        errors: allErrors,
         action: 'onboarding_complete',
       })
       // Don't expose detailed validation errors to client (security)
       logWarn('Onboarding validation failed', {
         userId: user.id,
-        errorCount: validationError.errors?.length || 0,
+        errorCount,
         action: 'onboarding_validation_failed',
       })
 
@@ -118,7 +132,7 @@ export async function POST(request: NextRequest) {
         {
           error: 'Invalid input. Please check all fields and try again.',
           // Only return first error to client (don't reveal all validation rules)
-          detail: validationError.errors?.[0]?.message || 'Validation failed',
+          detail: firstMessage,
         },
         { status: 400 }
       )

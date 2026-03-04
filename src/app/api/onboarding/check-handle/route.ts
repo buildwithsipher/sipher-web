@@ -5,6 +5,7 @@ import { sanitizeHandle } from '@/lib/sanitize'
 import { handleSchema } from '@/lib/validation/onboarding'
 import { logWarn } from '@/lib/logger'
 import { getErrorMessage } from '@/lib/errors'
+import { ZodError } from 'zod'
 
 /**
  * Check if a handle is available
@@ -37,12 +38,16 @@ export async function POST(request: NextRequest) {
     try {
       handleSchema.parse(sanitizedHandle)
     } catch (validationError) {
+      let details = 'Handle must be 3-20 characters, alphanumeric and underscores only'
+
+      if (validationError instanceof ZodError) {
+        details = validationError.issues[0]?.message ?? details
+      }
+
       return NextResponse.json(
         {
           error: 'Invalid handle format',
-          details:
-            validationError.errors?.[0]?.message ||
-            'Handle must be 3-20 characters, alphanumeric and underscores only',
+          details,
         },
         { status: 400 }
       )

@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Sanitize all inputs
-    const sanitizedData: Record<string, string> = {}
+    const sanitizedData: Record<string, string | null> = {}
     if (validatedData.name) sanitizedData.name = sanitizeName(validatedData.name)
     if (validatedData.startup_name)
       sanitizedData.startup_name = sanitizeName(validatedData.startup_name)
