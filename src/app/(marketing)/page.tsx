@@ -6,16 +6,6 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import {
   ArrowRight,
-  Users,
-  Zap,
-  MapPin,
-  Calendar,
-  Award,
-  Shield,
-  Sparkles,
-  Github,
-  Linkedin,
-  Twitter,
   ChevronDown,
   Star,
   X,

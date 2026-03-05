@@ -119,7 +119,7 @@ export default function FounderMirrorSection() {
 
         {/* Bottom Static Line */}
         <p className="text-base md:text-lg text-white/70 leading-relaxed">
-          You're not alone. Every builder feels this before they're seen.
+          You&apos;re not alone. Every builder feels this before they&apos;re seen.
         </p>
       </div>
     </section>

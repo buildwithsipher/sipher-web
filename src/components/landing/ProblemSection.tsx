@@ -31,8 +31,8 @@ export default function ProblemSection() {
           </h2>
           <p className="text-lg md:text-xl lg:text-2xl text-white/70 leading-relaxed">
             Your daily work lives in scattered places — product updates, customer conversations,
-            sales activities, content you create. Investors can't see it. Your network doesn't know
-            about it. Opportunities pass you by.
+            sales activities, content you create. Investors can&apos;t see it. Your network
+            doesn&apos;t know about it. Opportunities pass you by.
           </p>
         </motion.div>
 
@@ -45,11 +45,11 @@ export default function ProblemSection() {
         >
           <div className="border-l-2 border-purple-500/40 pl-4 md:pl-6 py-4 bg-purple-500/5 rounded-r-lg">
             <p className="text-base md:text-lg lg:text-xl text-white/90 leading-relaxed mb-4">
-              This isn't a talent problem. It's a{' '}
+              This isn&apos;t a talent problem. It&apos;s a{' '}
               <span className="text-purple-400 font-semibold">visibility</span> problem.
             </p>
             <p className="text-sm md:text-base lg:text-lg text-white/70 leading-relaxed">
-              You're executing. The world just can't see it.
+              You&apos;re executing. The world just can&apos;t see it.
             </p>
           </div>
         </motion.div>
@@ -62,9 +62,9 @@ export default function ProblemSection() {
           className="space-y-4 md:space-y-6"
         >
           <p className="text-base md:text-lg text-white/80 leading-relaxed">
-            Cold outreach goes unanswered because there's no proof of your momentum. Investors
+            Cold outreach goes unanswered because there&apos;s no proof of your momentum. Investors
             default to <span className="text-purple-400/80">pedigree</span> because execution is
-            invisible. Your network doesn't know what you're building.
+            invisible. Your network doesn&apos;t know what you&apos;re building.
           </p>
           <p className="text-base md:text-lg text-white/80 leading-relaxed">
             You need a way to make your daily <span className="text-purple-400/80">execution</span>{' '}
