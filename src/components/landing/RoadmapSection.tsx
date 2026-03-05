@@ -60,9 +60,9 @@ export default function RoadmapSection() {
             The Road Ahead
           </h2>
           <p className="text-xl md:text-2xl text-[#8B8B8B] max-w-3xl mx-auto mb-12 leading-relaxed">
-            Sipher isn't a tool.
+            Sipher isn&apos;t a tool.
             <br />
-            It's the beginning of a new way founders build.
+            It&apos;s the beginning of a new way founders build.
           </p>
 
           {/* Animated Pulse Line - Apple-style subtle */}
@@ -99,7 +99,7 @@ export default function RoadmapSection() {
           </h3>
           <div className="space-y-6 text-lg md:text-xl text-[#8B8B8B] leading-relaxed">
             <p>
-              Founders don't fail from lack of effort — they fail from lack of visibility,
+              Founders don&apos;t fail from lack of effort — they fail from lack of visibility,
               direction, and signal.
             </p>
             <p className="pt-4">We saw four repeating patterns:</p>
@@ -413,7 +413,7 @@ export default function RoadmapSection() {
           onMouseLeave={() => setHoveredFooter(false)}
         >
           <p className="text-2xl md:text-3xl lg:text-4xl text-white leading-relaxed mb-4">
-            We reveal things only when they're ready.
+            We reveal things only when they&apos;re ready.
           </p>
           <p className="text-xl md:text-2xl text-[#8B8B8B] mb-6 leading-relaxed">
             No hype. No noise. Just momentum.
@@ -455,7 +455,9 @@ export default function RoadmapSection() {
             >
               Join for Early Access →
             </button>
-            <p className="text-xs text-white/40">Be among the first to shape Sipher's future</p>
+            <p className="text-xs text-white/40">
+              Be among the first to shape Sipher&apos;s future
+            </p>
           </motion.div>
         </motion.div>
       </div>

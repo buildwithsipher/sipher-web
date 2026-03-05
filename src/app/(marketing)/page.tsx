@@ -6,16 +6,6 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import {
   ArrowRight,
-  ChevronDown,
-  Star,
-  X,
-  Play,
-  Clock,
-  Target,
-  BarChart3,
-  Rocket,
-  Lock,
-  Unlock,
   MousePointerClick,
   Move,
   Eye,

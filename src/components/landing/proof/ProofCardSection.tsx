@@ -63,8 +63,8 @@ export default function ProofCardSection() {
       <div className="text-center mb-16 px-4 sm:px-6">
         <h2 className="text-4xl md:text-5xl font-black text-white">See The Proof</h2>
         <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-          Visualize how your daily execution becomes your credential — whether you're building SaaS,
-          D2C, AI, services, or community-led startups.
+          Visualize how your daily execution becomes your credential — whether you&apos;re building
+          SaaS, D2C, AI, services, or community-led startups.
         </p>
       </div>
 

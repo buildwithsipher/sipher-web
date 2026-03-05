@@ -30,13 +30,13 @@ function IndiaPulseMapContent() {
       {/* HEADER - Concise and impactful */}
       <div className="text-center mb-10 md:mb-14 px-4 sm:px-6">
         <h2 className="text-4xl md:text-6xl font-black text-white mb-4 md:mb-6">
-          India's Builder Pulse
+          India&apos;s Builder Pulse
         </h2>
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-3">
           A living map of the energy, ambition, and momentum of founders across India.
         </p>
         <p className="text-sm md:text-base text-muted-foreground/70 max-w-xl mx-auto italic">
-          Full real-time Pulse arrives in 2026 — but today, you're seeing the spirit behind it.
+          Full real-time Pulse arrives in 2026 — but today, you&apos;re seeing the spirit behind it.
         </p>
       </div>
 

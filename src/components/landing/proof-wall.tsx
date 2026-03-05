@@ -128,7 +128,7 @@ export function ProofWallSection() {
               id="proofwall-title"
               className="text-4xl md:text-5xl font-black tracking-tight text-white mb-3"
             >
-              What You'll Build on <span className="text-purple-400">Sipher</span>
+              What You&apos;ll Build on <span className="text-purple-400">Sipher</span>
             </h2>
             <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-2">
               Your ProofCard — a visible record of your real execution.
@@ -299,8 +299,8 @@ export function ProofWallSection() {
             transition={{ delay: 0.4, duration: 0.6 }}
             className="mt-8 text-xs text-muted-foreground/80 text-center max-w-2xl mx-auto"
           >
-            These are visual previews of the ProofCards you'll generate on Sipher — intentionally
-            anonymized and not real user data.
+            These are visual previews of the ProofCards you&apos;ll generate on Sipher —
+            intentionally anonymized and not real user data.
           </motion.div>
         </div>
       </section>

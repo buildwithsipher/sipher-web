@@ -66,7 +66,7 @@ export default function BeforeAfterSipher() {
 
       {/* FOOTER TEXT */}
       <p className="text-xs text-muted-foreground text-center mt-6">
-        This is a preview of how visibility transforms a founder's journey.
+        This is a preview of how visibility transforms a founder&apos;s journey.
       </p>
     </section>
   )

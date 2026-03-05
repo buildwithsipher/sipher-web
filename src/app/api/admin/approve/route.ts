@@ -9,6 +9,10 @@ import { auditLog } from '@/lib/audit'
 import { logError, logWarn } from '@/lib/logger'
 import { getErrorMessage } from '@/lib/errors'
 
+// Force Node.js runtime - required for Supabase admin client and Resend
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     // Check admin authentication
